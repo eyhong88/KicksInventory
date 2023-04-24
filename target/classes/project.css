@@ -1,0 +1,4 @@
+.pagination .right-arrow, .pagination .left-arrow {
+    -fx-pref-width: 30px;
+    -fx-pref-height: 30px;
+}
