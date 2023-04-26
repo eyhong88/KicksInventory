@@ -9,7 +9,9 @@ public class Shoe {
     private String styleCode;
     private String sku;
 
-    public Shoe(double size, String name, String brand, double price, int quantity, String styleCode, String sku) {
+    private String colorway;
+
+    public Shoe(String colorway, double size, String name, String brand, double price, int quantity, String styleCode, String sku) {
         this.name = name;
         this.brand = brand;
         this.price = price;
@@ -17,14 +19,21 @@ public class Shoe {
         this.styleCode = styleCode;
         this.sku = sku;
         this.size = size;
+        this.colorway = colorway;
     }
 
     public String getName() {
         return name;
     }
+    public void setName(String name){
+        this.name = name;
+    }
 
     public String getBrand() {
         return brand;
+    }
+    public void setBrand(String brand){
+        this.brand = brand;
     }
 
     public double getPrice() {
@@ -46,9 +55,22 @@ public class Shoe {
     public String getStyleCode() {
         return styleCode;
     }
+    public void setStyleCode(String styleCode){
+        this.styleCode = styleCode;
+    }
+    public void setSku(String sku){
+        this.sku = sku;
+    }
 
     public String getSku() {
         return sku;
+    }
+    public String getColorway() {
+        return colorway;
+    }
+
+    public void setColorway(String colorway){
+        this.colorway = colorway;
     }
 
     public double getSize(){
