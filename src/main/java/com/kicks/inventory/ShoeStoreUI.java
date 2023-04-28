@@ -22,6 +22,7 @@ import com.kicks.inventory.dao.ShoesDAO;
 import com.kicks.inventory.function.AddShoe;
 import com.kicks.inventory.function.ModifyShoe;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -32,6 +33,9 @@ public class ShoeStoreUI extends Application {
     private TableView<Shoe> table;
     private Stage primaryStage;
     private ShoesDAO dao;
+    private String currentBrand = "Show All";
+
+    private static final DecimalFormat DF = new DecimalFormat("#.00");
 
     @Override
     public void start(Stage primaryStage) {
@@ -131,7 +135,7 @@ public class ShoeStoreUI extends Application {
                     popupContent.getChildren().add(new Label("Colorway: " + shoe.getColorway()));
                     popupContent.getChildren().add(new Label("Model: " + shoe.getModel()));
                     popupContent.getChildren().add(new Label("Size: " + shoe.getSize()));
-                    popupContent.getChildren().add(new Label("Price: " + shoe.getPrice()));
+                    popupContent.getChildren().add(new Label("Price: " + DF.format(shoe.getPrice())));
                     popupContent.getChildren().add(new Label("Quantity: " + shoe.getQuantity()));
                     popupContent.getChildren().add(new Label("Style Code: " + shoe.getStyleCode()));
                     popupContent.getChildren().add(new Label("SKU: " + shoe.getSku()));
@@ -155,7 +159,7 @@ public class ShoeStoreUI extends Application {
         addButton.setPrefWidth(BUTTON_WIDTH);
         addButton.setOnAction(e -> {
             AddShoe addShoe = new AddShoe(primaryStage, pagination);
-            addShoe.addShoe(table, dao.getShoes(), "", 0.0);
+            addShoe.addShoe(table, dao.getShoes(), "");
 
         });
 
@@ -164,7 +168,7 @@ public class ShoeStoreUI extends Application {
         skuScanButton.setPrefWidth(BUTTON_WIDTH);
         skuScanButton.setOnAction(e -> skuScan(pagination));
 
-        //SKU SCAN
+        //Stats
         Button statsButton = new Button("Stats");
         statsButton.setPrefWidth(BUTTON_WIDTH);
         statsButton.setOnAction(e -> statsScreen());
@@ -180,20 +184,41 @@ public class ShoeStoreUI extends Application {
     private void statsScreen() {
         Stage statsStage = PopupStage.createPopupStage(primaryStage, "Stats");
 
-        // create labels for the shoe count and total price
-        Label countLabel = new Label("Total shoe count: " + dao.getShoes().stream()
-                .mapToInt(Shoe::getQuantity).sum());
+        int totCount;
+        double priceSum;
+        String displayBrand;
+        if(currentBrand.equalsIgnoreCase("Show All")){
+            displayBrand = "All";
+            totCount = dao.getShoes().stream()
+                    .mapToInt(Shoe::getQuantity)
+                    .sum();
 
-        Label priceLabel = new Label("Total price: " + dao.getShoes().stream()
-                .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
-                .sum());
+            priceSum = dao.getShoes().stream()
+                    .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
+                    .sum();
+        }
+        else {
+            displayBrand = currentBrand;
+            totCount = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+                    .mapToInt(Shoe::getQuantity)
+                    .sum();
+
+            priceSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+                    .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
+                    .sum();
+        }
+        // create labels for the shoe count and total price
+        Label brandLabel = new Label("Stats for " + displayBrand);
+        Label countLabel = new Label("Total shoe count: " + totCount);
+        Label priceLabel = new Label("Total price: $" + DF.format(priceSum));
 
         // set the style of the labels using CSS
+        brandLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
         countLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
         priceLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
         // create a VBox to hold the labels
-        VBox vbox = new VBox(countLabel, priceLabel);
+        VBox vbox = new VBox(brandLabel, countLabel, priceLabel);
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(10);
 
@@ -312,6 +337,8 @@ public class ShoeStoreUI extends Application {
                 pagination.setPageFactory(ShoeTablePagination.pageFactory(filteredShoes, table));
                 showAllCheckBox.setSelected(false);
             }
+
+            currentBrand = selectedBrand;
         });
 
         // create a listener to update the brand options when the shoes list is modified
@@ -355,50 +382,26 @@ public class ShoeStoreUI extends Application {
         Stage popupStage = PopupStage.createPopupStage(primaryStage, "SKU Scan");
         popupStage.initOwner(primaryStage);
 
-        final double[] size = {0};
         TextField skuTextField = new TextField();
         skuTextField.setPromptText("Enter SKU");
         skuTextField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
-                Platform.runLater(() -> {
-                    Stage sizeStage = PopupStage.createPopupStage(popupStage, "Enter Size");
+                String sku = skuTextField.getText();
+                Shoe shoe = dao.getShoe(sku);
 
-                    TextField sizeTextField = new TextField();
-                    HBox hbox = new HBox(sizeTextField);
-                    hbox.setPadding(new Insets(10));
+                if (shoe != null) {
+                    // SKU exists, call modifyShoe method
+                    ModifyShoe modify = new ModifyShoe();
+                    modify.modifyShoe(primaryStage, shoe, table, sku);
 
-                    hbox.setOnKeyPressed(e -> {
-                        if(e.getCode() == KeyCode.ENTER) {
-                            // handle size confirmation
-                            size[0] = Double.parseDouble(sizeTextField.getText());
-                            sizeStage.close();
+                } else {
+                    // SKU does not exist, call addShoe method
+                    AddShoe addShoe = new AddShoe(primaryStage, pagination);
+                    addShoe.addShoe(table, dao.getShoes(), sku);
 
-                            String sku = skuTextField.getText();
-                            Shoe shoe = dao.getShoe(sku, size[0]);
-
-                            if (shoe != null) {
-                                // SKU exists, call modifyShoe method
-                                ModifyShoe modify = new ModifyShoe();
-                                modify.modifyShoe(primaryStage, shoe, table, sku);
-
-                            } else {
-                                // SKU does not exist, call addShoe method
-                                AddShoe addShoe = new AddShoe(primaryStage, pagination);
-                                addShoe.addShoe(table, dao.getShoes(), sku, size[0]);
-
-                            }
-                            Platform.runLater(skuTextField::requestFocus);
-                            skuTextField.clear();
-                        }
-                    });
-
-                    hbox.setSpacing(10);
-                    hbox.setAlignment(Pos.CENTER);
-
-                    Scene sizeScene = new Scene(hbox);
-                    sizeStage.setScene(sizeScene);
-                    sizeStage.show();
-                });
+                }
+                Platform.runLater(skuTextField::requestFocus);
+                skuTextField.clear();
             }
         });
 

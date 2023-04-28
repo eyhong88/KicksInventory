@@ -28,7 +28,7 @@ public class AddShoe {
         dao = ShoesDAO.getInstance();
     }
 
-    public void addShoe(TableView<Shoe> table, ObservableList<Shoe> shoes, String skuStr, double sz) {
+    public void addShoe(TableView<Shoe> table, ObservableList<Shoe> shoes, String skuStr) {
         // Create a new window for adding a shoe
         Stage addShoeStage = PopupStage.createPopupStage(primaryStage, "Add Shoe");
 
@@ -42,11 +42,7 @@ public class AddShoe {
         TextField priceField = new TextField();
         priceField.setPromptText("Price");
         TextField sizeField = new TextField();
-        if(sz > 0) {
-            sizeField.setText(String.valueOf(sz));
-        } else {
-            sizeField.setPromptText("Size");
-        }
+        sizeField.setPromptText("Size");
         TextField quantityField = new TextField();
         quantityField.setPromptText("Quantity");
         TextField styleCodeField = new TextField();

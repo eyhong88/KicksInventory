@@ -112,16 +112,15 @@ public class ShoesDAO {
         }
     }
 
-    public Shoe getShoe(String shoeSku, double sz) {
-        Optional<Shoe> optShoe = shoes.stream().filter(x -> x.getSku().equalsIgnoreCase(shoeSku) && x.getSize() == sz).findFirst();
+    public Shoe getShoe(String shoeSku) {
+        Optional<Shoe> optShoe = shoes.stream().filter(x -> x.getSku().equalsIgnoreCase(shoeSku)).findFirst();
         if(optShoe.isPresent()){
             return optShoe.get();
         } else {
-            String sql = "SELECT brand, model, colorway, size, price, quantity, style_code, sku FROM shoe_inventory WHERE sku=? AND size=?";
+            String sql = "SELECT brand, model, colorway, size, price, quantity, style_code, sku FROM shoe_inventory WHERE sku=?";
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql);
                 stmt.setString(1, shoeSku);
-                stmt.setDouble(2, sz);
 
                 ResultSet resultSet = stmt.executeQuery();
                 if (resultSet.next()) {
