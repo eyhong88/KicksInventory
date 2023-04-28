@@ -1,10 +1,9 @@
-package org.example;
+package com.kicks.inventory;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -19,33 +18,32 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import com.kicks.inventory.dao.ShoesDAO;
+import com.kicks.inventory.function.AddShoe;
+import com.kicks.inventory.function.ModifyShoe;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static org.example.ShoeTablePagination.pageFactory;
 
 public class ShoeStoreUI extends Application {
     public static final int BUTTON_WIDTH = 100;
     public static final int ITEMS_PER_PAGE = 20;
     private TableView<Shoe> table;
-    private ObservableList<Shoe> shoes;
-
     private Stage primaryStage;
+    private ShoesDAO dao;
 
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        dao = ShoesDAO.getInstance();
         loadShoes();
 
         table = createTable();
         addRowDoubleClickHandler(table);
 
         ShoeTablePagination tablePagination = new ShoeTablePagination();
-        Pagination pagination = tablePagination.createPagination(shoes, table);
+        Pagination pagination = tablePagination.createPagination(dao.getShoes(), table);
         VBox buttonBox = createButtonBox(pagination);
 
         BorderPane borderPane = new BorderPane();
@@ -55,9 +53,19 @@ public class ShoeStoreUI extends Application {
 
         HBox searchBar = createSearchBar(pagination);
 
-        searchBar.getChildren().add(createFilterBar(pagination));
-        borderPane.setTop(searchBar);
+        Button refreshButton = new Button("Refresh");
+        HBox refreshBox = new HBox(refreshButton);
+        refreshBox.setPadding(new Insets(10));
+        refreshBox.setSpacing(10);
 
+        refreshButton.setOnAction(event -> {
+            loadShoes();
+            table.setItems(FXCollections.observableArrayList(dao.getShoes()));
+            table.refresh();
+        });
+
+        HBox topBar = new HBox(refreshBox, searchBar, createFilterBar(pagination));
+        borderPane.setTop(topBar);
 
         Scene scene = new Scene(borderPane, 800, 600);
         scene.getStylesheets().add("project.css");
@@ -66,45 +74,7 @@ public class ShoeStoreUI extends Application {
     }
 
     private void loadShoes() {
-        List<Shoe> shoeList = new ArrayList<>();
-        shoeList.add(new Shoe("Shattered Backboard", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 7, "555088-005", "510815 026"));
-        shoeList.add(new Shoe("Black Toe", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 10, "555088-125", "575441 125"));
-        shoeList.add(new Shoe("Bred Toe", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 8, "555088-610", "575441 610"));
-        shoeList.add(new Shoe("Royal Blue", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 12, "555088-007", "575441 007"));
-        shoeList.add(new Shoe("Chicago", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 11, "555088-101", "575441 101"));
-        shoeList.add(new Shoe("Shadow", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 9, "555088-013", "575441 013"));
-        shoeList.add(new Shoe("Court Purple", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 6, "555088-500", "575441 500"));
-        shoeList.add(new Shoe("Storm Blue", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 10, "555088-127", "575441 127"));
-        shoeList.add(new Shoe("Metallic Red", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 8, "555088-103", "575441 103"));
-        shoeList.add(new Shoe("Yin Yang", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 7, "555088-011", "575441 011"));
-        shoeList.add(new Shoe("All Star", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 9, "907958-015", "575441 015"));
-        shoeList.add(new Shoe("Game Royal", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 12, "555088-403", "575441 403"));
-        shoeList.add(new Shoe("Pine Green", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 8, "555088-302", "575441 302"));
-        shoeList.add(new Shoe("Rookie of the Year", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 6, "555088-700", "575441 700"));
-        shoeList.add(new Shoe("Bred", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 11, "555088-001", "575441 001"));
-        shoeList.add(new Shoe("Top 3", 10,"Air Jordan 1 Retro High OG", "Nike", 160.0, 10, "555088-026", "575441 026"));
-        shoeList.add(new Shoe("Shadow 2.0", 10,"Air Jordan 1 Retro High OG", "Nike", 170.0, 9, "555088-035", "555088-035"));
-        shoeList.add(new Shoe("Hyper Royal", 10,"Air Jordan 1 Retro High OG", "Nike", 170.0, 8, "555088-402", "555088-402"));
-        shoeList.add(new Shoe("Court Purple", 10,"Air Jordan 1 Retro High OG", "Nike", 170, 6, "555088 500", "W1"));
-        shoeList.add(new Shoe("Metallic Red", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 8, "555088 103", "W2"));
-        shoeList.add(new Shoe("Metallic Navy", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 7, "555088 106", "W3"));
-        shoeList.add(new Shoe("Metallic Gold", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 12, "555088 031", "W4"));
-        shoeList.add(new Shoe("Game Royal", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 9, "555088 403", "W5"));
-        shoeList.add(new Shoe("Royal Toe", 10,"Air Jordan 1 Retro High OG", "Nike", 170, 11, "555088 041", "W6"));
-        shoeList.add(new Shoe("Shadow", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 10, "555088 013", "W7"));
-        shoeList.add(new Shoe("Satin Black Toe", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 7, "555088 125", "W8"));
-        shoeList.add(new Shoe("Obsidian", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 8, "555088 140", "W9"));
-        shoeList.add(new Shoe("Black Toe", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 11, "555088 125", "W10"));
-        shoeList.add(new Shoe("Bred Toe", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 9, "555088 610", "W11"));
-        shoeList.add(new Shoe("Hyper Royal", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 6, "555088 401", "W12"));
-        shoeList.add(new Shoe("Shattered Backboard 3.0", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 12, "555088 028", "W13"));
-        shoeList.add(new Shoe("Black Satin", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 8, "555088 060", "W14"));
-        shoeList.add(new Shoe("Bio Hack", 10,"Air Jordan 1 Retro High OG", "Nike", 170, 7, "555088 201", "W15"));
-        shoeList.add(new Shoe("Shadow 2.0", 10,"Air Jordan 1 Retro High OG", "Nike", 170, 10, "555088 035", "W16"));
-        shoeList.add(new Shoe("Panda", 10,"Air Jordan 1 Retro High OG", "Nike", 160, 9, "555088 101", "W17"));
-        shoeList.add(new Shoe("Dame 2", 10,"Dame 2", "Adidas", 160, 9, "ad 101", "W18"));
-
-        shoes = FXCollections.observableList(shoeList);
+        dao.loadShoes();
     }
 
     private TableView<Shoe> createTable() {
@@ -113,8 +83,8 @@ public class ShoeStoreUI extends Application {
         brandCol.setCellValueFactory(new PropertyValueFactory<>("brand"));
         TableColumn<Shoe, String> cwCol = new TableColumn<>("Colorway");
         cwCol.setCellValueFactory(new PropertyValueFactory<>("colorway"));
-        TableColumn<Shoe, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        TableColumn<Shoe, String> modelCol = new TableColumn<>("Model");
+        modelCol.setCellValueFactory(new PropertyValueFactory<>("model"));
         TableColumn<Shoe, String> sizeCol = new TableColumn<>("Size");
         sizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
         TableColumn<Shoe, Double> priceCol = new TableColumn<>("Price");
@@ -125,7 +95,7 @@ public class ShoeStoreUI extends Application {
         styleCodeCol.setCellValueFactory(new PropertyValueFactory<>("styleCode"));
         TableColumn<Shoe, String> skuCol = new TableColumn<>("SKU");
         skuCol.setCellValueFactory(new PropertyValueFactory<>("sku"));
-        table.getColumns().addAll(nameCol, cwCol, brandCol, priceCol, sizeCol, quantityCol, styleCodeCol, skuCol);
+        table.getColumns().addAll(modelCol, cwCol, brandCol, priceCol, sizeCol, quantityCol, styleCodeCol, skuCol);
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         table.setPrefWidth(Region.USE_COMPUTED_SIZE);
         table.setPrefHeight(Region.USE_COMPUTED_SIZE);
@@ -135,7 +105,10 @@ public class ShoeStoreUI extends Application {
         table.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && table.getSelectionModel().getSelectedItem() != null) {
                 Shoe selectedShoe = table.getSelectionModel().getSelectedItem();
-                ModifyShoe.modifyShoe(primaryStage, selectedShoe, table, "");
+
+                //TODO Make this singleton
+                ModifyShoe modify = new ModifyShoe();
+                modify.modifyShoe(primaryStage, selectedShoe, table, "");
             }
         });
         ScrollPane scrollPane = new ScrollPane(table);
@@ -156,7 +129,7 @@ public class ShoeStoreUI extends Application {
                     VBox popupContent = new VBox();
                     popupContent.getChildren().add(new Label("Brand: " + shoe.getBrand()));
                     popupContent.getChildren().add(new Label("Colorway: " + shoe.getColorway()));
-                    popupContent.getChildren().add(new Label("Name: " + shoe.getName()));
+                    popupContent.getChildren().add(new Label("Model: " + shoe.getModel()));
                     popupContent.getChildren().add(new Label("Size: " + shoe.getSize()));
                     popupContent.getChildren().add(new Label("Price: " + shoe.getPrice()));
                     popupContent.getChildren().add(new Label("Quantity: " + shoe.getQuantity()));
@@ -177,29 +150,64 @@ public class ShoeStoreUI extends Application {
         buttonBox.setSpacing(10);
         buttonBox.setPadding(new Insets(10));
 
+        //ADD SHOE
         Button addButton = new Button("Add Shoe");
         addButton.setPrefWidth(BUTTON_WIDTH);
         addButton.setOnAction(e -> {
             AddShoe addShoe = new AddShoe(primaryStage, pagination);
-            addShoe.addShoe(table, shoes, "");
+            addShoe.addShoe(table, dao.getShoes(), "", 0.0);
 
         });
 
-        Button sellButton = new Button("Sell Shoe");
-        sellButton.setPrefWidth(BUTTON_WIDTH);
-        sellButton.setOnAction(e -> sellShoe());
-
+        //SKU SCAN
         Button skuScanButton = new Button("SKU Scan");
         skuScanButton.setPrefWidth(BUTTON_WIDTH);
         skuScanButton.setOnAction(e -> skuScan(pagination));
 
+        //SKU SCAN
+        Button statsButton = new Button("Stats");
+        statsButton.setPrefWidth(BUTTON_WIDTH);
+        statsButton.setOnAction(e -> statsScreen());
+
+        //EXIT
         Button exitButton = new Button("Exit");
         exitButton.setPrefWidth(BUTTON_WIDTH);
         exitButton.setOnAction(e -> Platform.exit());
 
-        buttonBox.getChildren().addAll(addButton, sellButton, skuScanButton, exitButton);
+        buttonBox.getChildren().addAll(addButton, skuScanButton, statsButton, exitButton);
         return buttonBox;
     }
+    private void statsScreen() {
+        Stage statsStage = PopupStage.createPopupStage(primaryStage, "Stats");
+
+        // create labels for the shoe count and total price
+        Label countLabel = new Label("Total shoe count: " + dao.getShoes().stream()
+                .mapToInt(Shoe::getQuantity).sum());
+
+        Label priceLabel = new Label("Total price: " + dao.getShoes().stream()
+                .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
+                .sum());
+
+        // set the style of the labels using CSS
+        countLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
+        priceLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
+
+        // create a VBox to hold the labels
+        VBox vbox = new VBox(countLabel, priceLabel);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setSpacing(10);
+
+        // set the background color of the VBox using CSS
+        vbox.setStyle("-fx-background-color: #212121;");
+
+        // create a Scene for the VBox
+        Scene scene = new Scene(vbox, 300, 200);
+
+        // set the Scene of the statsStage and show it
+        statsStage.setScene(scene);
+        statsStage.show();
+    }
+
 
     private HBox createSearchBar(Pagination pagination) {
         TextField searchField = new TextField();
@@ -248,8 +256,8 @@ public class ShoeStoreUI extends Application {
     private Callback<Integer, Node> createPageFactory() {
         return pageIndex -> {
             int fromIndex = pageIndex * ITEMS_PER_PAGE;
-            int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, shoes.size());
-            table.setItems(FXCollections.observableList(shoes.subList(fromIndex, toIndex)));
+            int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, dao.getShoes().size());
+            table.setItems(FXCollections.observableList(dao.getShoes().subList(fromIndex, toIndex)));
             return table;
         };
     }
@@ -257,12 +265,12 @@ public class ShoeStoreUI extends Application {
     private Callback<Integer, Node> createSearchPageFactory(String searchTerm) {
         return pageIndex -> {
             Predicate<Shoe> searchPredicate = shoe ->
-                    shoe.getName().toLowerCase().contains(searchTerm.toLowerCase())
+                    shoe.getModel().toLowerCase().contains(searchTerm.toLowerCase())
                             || shoe.getBrand().toLowerCase().contains(searchTerm.toLowerCase())
                             || shoe.getSku().toLowerCase().contains(searchTerm.toLowerCase())
                             || shoe.getStyleCode().toLowerCase().contains(searchTerm.toLowerCase())
                             || shoe.getColorway().toLowerCase().contains(searchTerm.toLowerCase());
-            List<Shoe> filteredShoes = shoes.stream()
+            List<Shoe> filteredShoes = dao.getShoes().stream()
                     .filter(searchPredicate)
                     .collect(Collectors.toList());
             int fromIndex = pageIndex * ITEMS_PER_PAGE;
@@ -293,15 +301,15 @@ public class ShoeStoreUI extends Application {
             String selectedBrand = brandFilter.getSelectionModel().getSelectedItem();
             if (selectedBrand != null && selectedBrand.equals("Show All")) {
                 // reset the pagination to its original state
-                pagination.setPageCount((int) Math.ceil((double) shoes.size() / ITEMS_PER_PAGE));
-                pagination.setPageFactory(pageFactory(shoes, table));
+                pagination.setPageCount((int) Math.ceil((double) dao.getShoes().size() / ITEMS_PER_PAGE));
+                pagination.setPageFactory(ShoeTablePagination.pageFactory(dao.getShoes(), table));
             } else {
                 Predicate<Shoe> brandPredicate = shoe -> shoe.getBrand().equals(selectedBrand);
-                List<Shoe> filteredShoes = shoes.stream()
+                List<Shoe> filteredShoes = dao.getShoes().stream()
                         .filter(brandPredicate)
                         .collect(Collectors.toList());
                 pagination.setPageCount((int) Math.ceil((double) filteredShoes.size() / ITEMS_PER_PAGE));
-                pagination.setPageFactory(pageFactory(filteredShoes, table));
+                pagination.setPageFactory(ShoeTablePagination.pageFactory(filteredShoes, table));
                 showAllCheckBox.setSelected(false);
             }
         });
@@ -312,14 +320,16 @@ public class ShoeStoreUI extends Application {
                 if (c.wasAdded() || c.wasRemoved()) {
                     brandOptions.clear();
                     brandOptions.addAll(createBrandOptionsList());
-                    brandFilter.setItems(FXCollections.observableArrayList(brandOptions));
+                    Platform.runLater(() -> {
+                        brandFilter.setItems(FXCollections.observableArrayList(brandOptions));
+                        brandFilter.getSelectionModel().select(0); // select the "Show All" option by default
+                    });
                 }
             }
         };
 
         // add the listener to the shoes list
-        shoes.addListener(shoesListener);
-
+        dao.getShoes().addListener(shoesListener);
         HBox filterBox = new HBox(new Label("Filter by Brand:"), brandFilter, showAllCheckBox);
         filterBox.setAlignment(Pos.CENTER_LEFT);
         filterBox.setPadding(new Insets(10));
@@ -329,9 +339,10 @@ public class ShoeStoreUI extends Application {
         return filterBox;
     }
 
+
     // helper method to create the brand options list
     private List<String> createBrandOptionsList() {
-        List<String> brandOptions = shoes.stream()
+        List<String> brandOptions = dao.getShoes().stream()
                 .map(Shoe::getBrand)
                 .distinct()
                 .sorted()
@@ -340,43 +351,61 @@ public class ShoeStoreUI extends Application {
         return brandOptions;
     }
 
-    private void sellShoe() {
-        // TODO: Implement sellShoe method
-    }
-
     private void skuScan(Pagination pagination) {
         Stage popupStage = PopupStage.createPopupStage(primaryStage, "SKU Scan");
         popupStage.initOwner(primaryStage);
 
+        final double[] size = {0};
         TextField skuTextField = new TextField();
         skuTextField.setPromptText("Enter SKU");
         skuTextField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
-                String sku = skuTextField.getText();
-                Optional<Shoe> optionalShoe = shoes.stream().filter(shoe -> shoe.getSku().equals(sku)).findFirst();
-                if (optionalShoe.isPresent()) {
-                    // SKU exists, call modifyShoe method
-                    Shoe shoe = optionalShoe.get();
-                    ModifyShoe.modifyShoe(primaryStage, shoe, table, sku);
-                    Platform.runLater(skuTextField::requestFocus);
+                Platform.runLater(() -> {
+                    Stage sizeStage = PopupStage.createPopupStage(popupStage, "Enter Size");
 
-                    skuTextField.clear();
-                } else {
-                    // SKU does not exist, call addShoe method
-                    AddShoe addShoe = new AddShoe(primaryStage, pagination);
-                    addShoe.addShoe(table, shoes, sku);
-                    Platform.runLater(skuTextField::requestFocus);
+                    TextField sizeTextField = new TextField();
+                    HBox hbox = new HBox(sizeTextField);
+                    hbox.setPadding(new Insets(10));
 
-                    skuTextField.clear();
-                }
+                    hbox.setOnKeyPressed(e -> {
+                        if(e.getCode() == KeyCode.ENTER) {
+                            // handle size confirmation
+                            size[0] = Double.parseDouble(sizeTextField.getText());
+                            sizeStage.close();
+
+                            String sku = skuTextField.getText();
+                            Shoe shoe = dao.getShoe(sku, size[0]);
+
+                            if (shoe != null) {
+                                // SKU exists, call modifyShoe method
+                                ModifyShoe modify = new ModifyShoe();
+                                modify.modifyShoe(primaryStage, shoe, table, sku);
+
+                            } else {
+                                // SKU does not exist, call addShoe method
+                                AddShoe addShoe = new AddShoe(primaryStage, pagination);
+                                addShoe.addShoe(table, dao.getShoes(), sku, size[0]);
+
+                            }
+                            Platform.runLater(skuTextField::requestFocus);
+                            skuTextField.clear();
+                        }
+                    });
+
+                    hbox.setSpacing(10);
+                    hbox.setAlignment(Pos.CENTER);
+
+                    Scene sizeScene = new Scene(hbox);
+                    sizeStage.setScene(sizeScene);
+                    sizeStage.show();
+                });
             }
         });
 
         skuTextField.requestFocus();
 
-        Button exitButton = new Button("Exit");
         // Create an HBox to hold the text field and the exit button
-        HBox hbox = new HBox(skuTextField, exitButton);
+        HBox hbox = new HBox(skuTextField);
         hbox.setSpacing(10);
         hbox.setAlignment(Pos.CENTER_RIGHT);
 
@@ -389,87 +418,12 @@ public class ShoeStoreUI extends Application {
         // Add styling to the VBox
         root.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 2px;");
 
-        // Set up the event handler for the exit button
-        exitButton.setOnAction(e -> popupStage.close());
-
         Scene scene = new Scene(root);
         popupStage.setScene(scene);
         popupStage.show();
     }
 
-
     public static void main(String[] args) {
         launch(args);
-    }
-
-    private void createModifyPopup(Stage primaryStage, Shoe shoe) {
-        Stage popupStage = PopupStage.createPopupStage(primaryStage, "Modify Shoe");
-        popupStage.initOwner(primaryStage);
-        VBox popupVBox = new VBox(10);
-        popupVBox.setPadding(new Insets(10));
-        popupVBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label nameLabel = new Label("Name: ");
-        TextField nameField = new TextField(shoe.getName());
-        HBox nameBox = new HBox(nameLabel, nameField);
-        nameBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label brandLabel = new Label("Brand: ");
-        TextField brandField = new TextField(shoe.getBrand());
-        HBox brandBox = new HBox(brandLabel, brandField);
-        brandBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label cwLabel = new Label("Colorway: ");
-        TextField cwField = new TextField(shoe.getColorway());
-        HBox cwBox = new HBox(cwLabel, cwField);
-        cwBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label sizeLabel = new Label("Size: ");
-        TextField sizeField = new TextField(Double.toString(shoe.getSize()));
-        HBox sizeBox = new HBox(sizeLabel, sizeField);
-        sizeBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label priceLabel = new Label("Price: ");
-        TextField priceField = new TextField(Double.toString(shoe.getPrice()));
-        HBox priceBox = new HBox(priceLabel, priceField);
-        priceBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label quantityLabel = new Label("Quantity: ");
-        TextField quantityField = new TextField(Integer.toString(shoe.getQuantity()));
-        HBox quantityBox = new HBox(quantityLabel, quantityField);
-        quantityBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label styleCodeLabel = new Label("Style Code: ");
-        TextField styleCodeField = new TextField(shoe.getStyleCode());
-        HBox styleCodeBox = new HBox(styleCodeLabel, styleCodeField);
-        styleCodeBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label skuLabel = new Label("SKU: ");
-        TextField skuField = new TextField(shoe.getSku());
-        HBox skuBox = new HBox(skuLabel, skuField);
-        skuBox.setAlignment(Pos.CENTER_LEFT);
-
-        HBox buttonBox = new HBox(10);
-        buttonBox.setAlignment(Pos.CENTER);
-        Button submitButton = new Button("Submit");
-        submitButton.setOnAction(submitEvent -> {
-            shoe.setName(nameField.getText());
-            shoe.setBrand(brandField.getText());
-            shoe.setColorway(cwField.getText());
-            shoe.setSize(Double.parseDouble(sizeField.getText()));
-            shoe.setPrice(Double.parseDouble(priceField.getText()));
-            shoe.setQuantity(Integer.parseInt(quantityField.getText()));
-            shoe.setStyleCode(styleCodeField.getText());
-            shoe.setSku(skuField.getText());
-            popupStage.close();
-        });
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setOnAction(cancelEvent -> popupStage.close());
-        buttonBox.getChildren().addAll(submitButton, cancelButton);
-
-        popupVBox.getChildren().addAll(nameBox, brandBox, cwBox, sizeBox, priceBox, quantityBox, styleCodeBox, skuBox, buttonBox);
-        Scene popupScene = new Scene(popupVBox);
-        popupStage.setScene(popupScene);
-        popupStage.showAndWait();
     }
 }

@@ -1,5 +1,7 @@
-package org.example;
+package com.kicks.inventory.function;
 
+import com.kicks.inventory.PopupStage;
+import com.kicks.inventory.ShoeStoreUI;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -11,19 +13,22 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import static org.example.ShoeStoreUI.ITEMS_PER_PAGE;
+import com.kicks.inventory.Shoe;
+import com.kicks.inventory.dao.ShoesDAO;
 
 public class AddShoe {
-    private Pagination pagination;
-    private Stage primaryStage;
+    private final Pagination pagination;
+    private final Stage primaryStage;
+
+    private ShoesDAO dao;
 
     public AddShoe(Stage primaryStage, Pagination pagination){
         this.pagination = pagination;
         this.primaryStage = primaryStage;
+        dao = ShoesDAO.getInstance();
     }
 
-    public void addShoe(TableView<Shoe> table, ObservableList<Shoe> shoes, String skuStr) {
+    public void addShoe(TableView<Shoe> table, ObservableList<Shoe> shoes, String skuStr, double sz) {
         // Create a new window for adding a shoe
         Stage addShoeStage = PopupStage.createPopupStage(primaryStage, "Add Shoe");
 
@@ -32,12 +37,16 @@ public class AddShoe {
         brandField.setPromptText("Brand");
         TextField cwField = new TextField();
         cwField.setPromptText("Colorway");
-        TextField nameField = new TextField();
-        nameField.setPromptText("Name");
+        TextField modelField = new TextField();
+        modelField.setPromptText("Model");
         TextField priceField = new TextField();
         priceField.setPromptText("Price");
         TextField sizeField = new TextField();
-        sizeField.setPromptText("Size");
+        if(sz > 0) {
+            sizeField.setText(String.valueOf(sz));
+        } else {
+            sizeField.setPromptText("Size");
+        }
         TextField quantityField = new TextField();
         quantityField.setPromptText("Quantity");
         TextField styleCodeField = new TextField();
@@ -53,22 +62,21 @@ public class AddShoe {
         addButton.setOnAction(e -> {
             // Create a new shoe object
             double size = Double.parseDouble(sizeField.getText());
-            String name = nameField.getText();
+            String model = modelField.getText();
             String brand = brandField.getText();
             double price = Double.parseDouble(priceField.getText());
             int quantity = Integer.parseInt(quantityField.getText());
             String styleCode = styleCodeField.getText();
             String sku = skuField.getText();
             String cw = cwField.getText();
-            Shoe shoe = new Shoe(cw, size, name, brand, price, quantity, styleCode, sku);
+            Shoe shoe = new Shoe(cw, size, model, brand, price, quantity, styleCode, sku);
 
-            // Add the shoe to the list of shoes
-            shoes.add(shoe);
+            dao.addShoe(shoe);
 
             // Update the pagination to display the new shoe
             int pageIndex = pagination.getCurrentPageIndex();
-            int fromIndex = pageIndex * ITEMS_PER_PAGE;
-            int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, shoes.size());
+            int fromIndex = pageIndex * ShoeStoreUI.ITEMS_PER_PAGE;
+            int toIndex = Math.min(fromIndex + ShoeStoreUI.ITEMS_PER_PAGE, shoes.size());
             table.setItems(FXCollections.observableList(shoes.subList(fromIndex, toIndex)));
 
             // Close the add shoe window
@@ -87,7 +95,7 @@ public class AddShoe {
         layout.setSpacing(10);
         layout.setPadding(new Insets(10));
         layout.getChildren().addAll(
-                nameField, cwField, brandField, priceField, sizeField, quantityField,
+                modelField, cwField, brandField, priceField, sizeField, quantityField,
                 styleCodeField, skuField, buttonBox);
 
         // Create a scene and set it to the add shoe window

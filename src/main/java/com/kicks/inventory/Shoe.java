@@ -1,9 +1,9 @@
-package org.example;
+package com.kicks.inventory;
 
 public class Shoe {
     private double size;
     private String brand;
-    private String name;
+    private String model;
     private double price;
     private int quantity;
     private String styleCode;
@@ -11,8 +11,8 @@ public class Shoe {
 
     private String colorway;
 
-    public Shoe(String colorway, double size, String name, String brand, double price, int quantity, String styleCode, String sku) {
-        this.name = name;
+    public Shoe(String colorway, double size, String model, String brand, double price, int quantity, String styleCode, String sku) {
+        this.model = model;
         this.brand = brand;
         this.price = price;
         this.quantity = quantity;
@@ -22,11 +22,11 @@ public class Shoe {
         this.colorway = colorway;
     }
 
-    public String getName() {
-        return name;
+    public String getModel() {
+        return model;
     }
-    public void setName(String name){
-        this.name = name;
+    public void setModel(String model){
+        this.model = model;
     }
 
     public String getBrand() {

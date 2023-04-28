@@ -1,4 +1,4 @@
-package org.example;
+package com.kicks.inventory;
 
 import javafx.stage.Modality;
 import javafx.stage.Stage;
