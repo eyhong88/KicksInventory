@@ -32,17 +32,18 @@ public class ShoesDAO {
         List<Shoe> shoeList = new ArrayList<>();
         try {
             Statement stmt = connection.createStatement();
-            ResultSet resultSet = stmt.executeQuery("SELECT brand, model, colorway, size, price, quantity, style_code, sku FROM shoe_inventory WHERE quantity <> 0");
+            ResultSet resultSet = stmt.executeQuery("SELECT brand, model, colorway, size, price, est_sale_price, quantity, style_code, sku FROM shoe_inventory WHERE quantity <> 0");
             while(resultSet.next()){
                 String brand = resultSet.getString("brand");
                 String model = resultSet.getString("model");
                 String colorway = resultSet.getString("colorway");
                 double size = resultSet.getDouble("size");
                 double price = resultSet.getDouble("price");
+                double estSalePrice = resultSet.getDouble("est_sale_price");
                 int quantity = resultSet.getInt("quantity");
                 String styleCode = resultSet.getString("style_code");
                 String sku = resultSet.getString("sku");
-                shoeList.add(new Shoe(colorway, size, model, brand, price, quantity, styleCode, sku));
+                shoeList.add(new Shoe(estSalePrice, colorway, size, model, brand, price, quantity, styleCode, sku));
             }
             stmt.close();
         } catch (SQLException e) {
@@ -52,13 +53,14 @@ public class ShoesDAO {
     }
 
     public void addShoe(Shoe shoe) {
-        String sql = "INSERT INTO shoe_inventory (brand, model, colorway, size, price, quantity, style_code, sku) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO shoe_inventory (brand, model, colorway, size, price, est_sale_price, quantity, style_code, sku) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, shoe.getBrand());
             stmt.setString(2, shoe.getModel());
             stmt.setString(3, shoe.getColorway());
             stmt.setDouble(4, shoe.getSize());
+            stmt.setDouble(4, shoe.getEstSalePrice());
             stmt.setDouble(5, shoe.getPrice());
             stmt.setInt(6, shoe.getQuantity());
             stmt.setString(7, shoe.getStyleCode());
@@ -93,7 +95,7 @@ public class ShoesDAO {
 
 
     public void updateShoe(Shoe shoe) {
-        String sql = "UPDATE shoe_inventory SET brand=?, model=?, colorway=?, size=?, price=?, quantity=?, style_code=? WHERE sku=?";
+        String sql = "UPDATE shoe_inventory SET brand=?, model=?, colorway=?, size=?, price=?, est_sale_price=?, quantity=?, style_code=? WHERE sku=?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, shoe.getBrand());
@@ -101,9 +103,10 @@ public class ShoesDAO {
             stmt.setString(3, shoe.getColorway());
             stmt.setDouble(4, shoe.getSize());
             stmt.setDouble(5, shoe.getPrice());
-            stmt.setInt(6, shoe.getQuantity());
-            stmt.setString(7, shoe.getStyleCode());
-            stmt.setString(8, shoe.getSku());
+            stmt.setDouble(6, shoe.getEstSalePrice());
+            stmt.setInt(7, shoe.getQuantity());
+            stmt.setString(8, shoe.getStyleCode());
+            stmt.setString(9, shoe.getSku());
             stmt.executeUpdate();
             stmt.close();
 
@@ -117,7 +120,7 @@ public class ShoesDAO {
         if(optShoe.isPresent()){
             return optShoe.get();
         } else {
-            String sql = "SELECT brand, model, colorway, size, price, quantity, style_code, sku FROM shoe_inventory WHERE sku=?";
+            String sql = "SELECT brand, model, colorway, size, price, est_sale_price, quantity, style_code, sku FROM shoe_inventory WHERE sku=?";
             try {
                 PreparedStatement stmt = connection.prepareStatement(sql);
                 stmt.setString(1, shoeSku);
@@ -129,11 +132,12 @@ public class ShoesDAO {
                     String colorway = resultSet.getString("colorway");
                     double size = resultSet.getDouble("size");
                     double price = resultSet.getDouble("price");
+                    double estSalePrice = resultSet.getDouble("est_sale_price");
                     int quantity = resultSet.getInt("quantity");
                     String styleCode = resultSet.getString("style_code");
                     String sku = resultSet.getString("sku");
 
-                    Shoe shoe = new Shoe(colorway, size, model, brand, price, quantity, styleCode, sku);
+                    Shoe shoe = new Shoe(estSalePrice, colorway, size, model, brand, price, quantity, styleCode, sku);
                     if(quantity > 0) shoes.add(shoe);
                     return shoe;
                 }

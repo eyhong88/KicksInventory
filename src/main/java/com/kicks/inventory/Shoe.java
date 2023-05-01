@@ -5,16 +5,18 @@ public class Shoe {
     private String brand;
     private String model;
     private double price;
+    private double estSalePrice;
     private int quantity;
     private String styleCode;
     private String sku;
 
     private String colorway;
 
-    public Shoe(String colorway, double size, String model, String brand, double price, int quantity, String styleCode, String sku) {
+    public Shoe(double estSalePrice, String colorway, double size, String model, String brand, double price, int quantity, String styleCode, String sku) {
         this.model = model;
         this.brand = brand;
         this.price = price;
+        this.estSalePrice = estSalePrice;
         this.quantity = quantity;
         this.styleCode = styleCode;
         this.sku = sku;
@@ -42,6 +44,15 @@ public class Shoe {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+
+    public double getEstSalePrice() {
+        return estSalePrice;
+    }
+
+    public void setEstSalePrice(double estSalePrice) {
+        this.estSalePrice = estSalePrice;
     }
 
     public int getQuantity() {

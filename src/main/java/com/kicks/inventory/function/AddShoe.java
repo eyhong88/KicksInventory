@@ -41,6 +41,8 @@ public class AddShoe {
         modelField.setPromptText("Model");
         TextField priceField = new TextField();
         priceField.setPromptText("Price");
+        TextField estSalePriceField = new TextField();
+        estSalePriceField.setPromptText("Est. Sale Price");
         TextField sizeField = new TextField();
         sizeField.setPromptText("Size");
         TextField quantityField = new TextField();
@@ -61,11 +63,12 @@ public class AddShoe {
             String model = modelField.getText();
             String brand = brandField.getText();
             double price = Double.parseDouble(priceField.getText());
+            double estSalePrice = Double.parseDouble(estSalePriceField.getText());
             int quantity = Integer.parseInt(quantityField.getText());
             String styleCode = styleCodeField.getText();
             String sku = skuField.getText();
             String cw = cwField.getText();
-            Shoe shoe = new Shoe(cw, size, model, brand, price, quantity, styleCode, sku);
+            Shoe shoe = new Shoe(estSalePrice, cw, size, model, brand, price, quantity, styleCode, sku);
 
             dao.addShoe(shoe);
 
@@ -91,7 +94,7 @@ public class AddShoe {
         layout.setSpacing(10);
         layout.setPadding(new Insets(10));
         layout.getChildren().addAll(
-                modelField, cwField, brandField, priceField, sizeField, quantityField,
+                modelField, cwField, brandField, priceField, estSalePriceField, sizeField, quantityField,
                 styleCodeField, skuField, buttonBox);
 
         // Create a scene and set it to the add shoe window

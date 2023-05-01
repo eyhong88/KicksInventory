@@ -15,6 +15,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -71,7 +73,7 @@ public class ShoeStoreUI extends Application {
         HBox topBar = new HBox(refreshBox, searchBar, createFilterBar(pagination));
         borderPane.setTop(topBar);
 
-        Scene scene = new Scene(borderPane, 800, 600);
+        Scene scene = new Scene(borderPane, 900, 600);
         scene.getStylesheets().add("project.css");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -93,13 +95,39 @@ public class ShoeStoreUI extends Application {
         sizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
         TableColumn<Shoe, Double> priceCol = new TableColumn<>("Price");
         priceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
+        TableColumn<Shoe, Double> estSalePriceCol = new TableColumn<>("Est Sale Price");
+        estSalePriceCol.setCellValueFactory(new PropertyValueFactory<>("estSalePrice"));
+        estSalePriceCol.setCellFactory(column -> new TableCell<Shoe, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText("");
+                    setGraphic(null);
+                } else {
+                    Shoe shoe = getTableView().getItems().get(getIndex());
+                    double difference = shoe.getEstSalePrice() - shoe.getPrice();
+                    Text text = new Text(String.format("%.2f", item));
+                    text.setFill(Color.BLACK);
+                    Text diffText = new Text(String.format(" (%+.2f)", difference));
+                    diffText.setFill(difference < 0 ? Color.RED : Color.GREEN);
+                    HBox hbox = new HBox(text, diffText);
+                    hbox.setAlignment(Pos.CENTER_LEFT);
+                    setGraphic(hbox);
+                }
+            }
+
+
+        });
+
         TableColumn<Shoe, Integer> quantityCol = new TableColumn<>("Quantity");
         quantityCol.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         TableColumn<Shoe, String> styleCodeCol = new TableColumn<>("Style Code");
         styleCodeCol.setCellValueFactory(new PropertyValueFactory<>("styleCode"));
         TableColumn<Shoe, String> skuCol = new TableColumn<>("SKU");
         skuCol.setCellValueFactory(new PropertyValueFactory<>("sku"));
-        table.getColumns().addAll(modelCol, cwCol, brandCol, priceCol, sizeCol, quantityCol, styleCodeCol, skuCol);
+        table.getColumns().addAll(modelCol, cwCol, brandCol, priceCol, estSalePriceCol, sizeCol, quantityCol, styleCodeCol, skuCol);
         table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         table.setPrefWidth(Region.USE_COMPUTED_SIZE);
         table.setPrefHeight(Region.USE_COMPUTED_SIZE);
@@ -121,6 +149,7 @@ public class ShoeStoreUI extends Application {
         return table;
     }
 
+
     private void addRowDoubleClickHandler(TableView<Shoe> table) {
         table.setRowFactory(tv -> {
             TableRow<Shoe> row = new TableRow<>();
@@ -136,6 +165,7 @@ public class ShoeStoreUI extends Application {
                     popupContent.getChildren().add(new Label("Model: " + shoe.getModel()));
                     popupContent.getChildren().add(new Label("Size: " + shoe.getSize()));
                     popupContent.getChildren().add(new Label("Price: " + DF.format(shoe.getPrice())));
+                    popupContent.getChildren().add(new Label("Est. Sale Price: " + DF.format(shoe.getPrice())));
                     popupContent.getChildren().add(new Label("Quantity: " + shoe.getQuantity()));
                     popupContent.getChildren().add(new Label("Style Code: " + shoe.getStyleCode()));
                     popupContent.getChildren().add(new Label("SKU: " + shoe.getSku()));
@@ -186,6 +216,7 @@ public class ShoeStoreUI extends Application {
 
         int totCount;
         double priceSum;
+        double estSalePriceDiffSum;
         String displayBrand;
         if(currentBrand.equalsIgnoreCase("Show All")){
             displayBrand = "All";
@@ -195,6 +226,10 @@ public class ShoeStoreUI extends Application {
 
             priceSum = dao.getShoes().stream()
                     .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
+                    .sum();
+
+            estSalePriceDiffSum = dao.getShoes().stream()
+                    .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
                     .sum();
         }
         else {
@@ -206,19 +241,27 @@ public class ShoeStoreUI extends Application {
             priceSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
                     .sum();
+
+            estSalePriceDiffSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+                    .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
+                    .sum();
         }
-        // create labels for the shoe count and total price
+        // create labels for the shoe count, total price, and estSalePrice - Price sum
         Label brandLabel = new Label("Stats for " + displayBrand);
         Label countLabel = new Label("Total shoe count: " + totCount);
         Label priceLabel = new Label("Total price: $" + DF.format(priceSum));
+        Label estSalePriceDiffLabel = new Label("Total difference: $" + DF.format(estSalePriceDiffSum));
+        Label gainsPercentLabel = new Label("% difference: " + DF.format((estSalePriceDiffSum / priceSum) * 100)  + "%");
 
         // set the style of the labels using CSS
         brandLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
         countLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
         priceLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
+        estSalePriceDiffLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
+        gainsPercentLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
         // create a VBox to hold the labels
-        VBox vbox = new VBox(brandLabel, countLabel, priceLabel);
+        VBox vbox = new VBox(brandLabel, countLabel, priceLabel, estSalePriceDiffLabel, gainsPercentLabel);
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(10);
 
@@ -226,12 +269,13 @@ public class ShoeStoreUI extends Application {
         vbox.setStyle("-fx-background-color: #212121;");
 
         // create a Scene for the VBox
-        Scene scene = new Scene(vbox, 300, 200);
+        Scene scene = new Scene(vbox, 300, 350);
 
         // set the Scene of the statsStage and show it
         statsStage.setScene(scene);
         statsStage.show();
     }
+
 
 
     private HBox createSearchBar(Pagination pagination) {

@@ -48,17 +48,21 @@ public class ModifyShoe {
         TextField priceTextField = new TextField(String.valueOf(shoe.getPrice()));
         popupGrid.addRow(4, priceLabel, priceTextField);
 
+        Label estSalePriceLabel = new Label("Est Sale Price:");
+        TextField estSalePriceTextField = new TextField(String.valueOf(shoe.getEstSalePrice()));
+        popupGrid.addRow(5, estSalePriceLabel, estSalePriceTextField);
+
         Label quantityLabel = new Label("Quantity:");
         TextField quantityTextField = new TextField(String.valueOf(shoe.getQuantity()));
-        popupGrid.addRow(5, quantityLabel, quantityTextField);
+        popupGrid.addRow(6, quantityLabel, quantityTextField);
 
         Label styleCodeLabel = new Label("Style Code:");
         TextField styleCodeTextField = new TextField(shoe.getStyleCode());
-        popupGrid.addRow(6, styleCodeLabel, styleCodeTextField);
+        popupGrid.addRow(7, styleCodeLabel, styleCodeTextField);
 
         Label skuLabel = new Label("SKU:");
         TextField skuTextField = new TextField(sku.isEmpty() ? shoe.getSku() : sku);
-        popupGrid.addRow(7, skuLabel, skuTextField);
+        popupGrid.addRow(8, skuLabel, skuTextField);
 
         Button cancelButton = new Button("Cancel");
         cancelButton.setOnAction(e -> {
@@ -75,6 +79,7 @@ public class ModifyShoe {
             shoe.setColorway(colorwayTextField.getText());
             shoe.setSize(Double.parseDouble(sizeTextField.getText()));
             shoe.setPrice(Double.parseDouble(priceTextField.getText()));
+            shoe.setEstSalePrice(Double.parseDouble(estSalePriceTextField.getText()));
             shoe.setQuantity(Integer.parseInt(quantityTextField.getText()));
             shoe.setStyleCode(styleCodeTextField.getText());
             shoe.setSku(skuTextField.getText());
@@ -91,7 +96,7 @@ public class ModifyShoe {
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
         buttonBox.getChildren().addAll(submitButton, cancelButton);
-        popupGrid.add(buttonBox, 1, 8);
+        popupGrid.add(buttonBox, 1, 9);
 
         VBox sellShoeVBox = SellShoe.sellShoe(popupStage, table, shoe, quantityTextField);
         HBox hBox = new HBox(popupGrid, new Separator(Orientation.VERTICAL), sellShoeVBox);

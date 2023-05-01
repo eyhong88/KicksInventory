@@ -5,6 +5,7 @@ CREATE TABLE shoe_inventory (
   colorway VARCHAR(50) NOT NULL,
   size  DECIMAL(3,1) NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
+  est_sale_price DECIMAL(10,2),
   quantity INT NOT NULL,
   styleCode VARCHAR(50) NOT NULL,
   sku VARCHAR(50) NOT NULL UNIQUE,
