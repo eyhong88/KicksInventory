@@ -60,11 +60,11 @@ public class ShoesDAO {
             stmt.setString(2, shoe.getModel());
             stmt.setString(3, shoe.getColorway());
             stmt.setDouble(4, shoe.getSize());
-            stmt.setDouble(4, shoe.getEstSalePrice());
             stmt.setDouble(5, shoe.getPrice());
-            stmt.setInt(6, shoe.getQuantity());
-            stmt.setString(7, shoe.getStyleCode());
-            stmt.setString(8, shoe.getSku());
+            stmt.setDouble(6, shoe.getEstSalePrice());
+            stmt.setInt(7, shoe.getQuantity());
+            stmt.setString(8, shoe.getStyleCode());
+            stmt.setString(9, shoe.getSku());
 
             int rowsInserted = stmt.executeUpdate();
             if (rowsInserted > 0) {
