@@ -1,5 +1,8 @@
 package com.kicks.inventory;
 
+import com.kicks.inventory.function.AddShoe;
+import com.kicks.inventory.function.ModifyShoe;
+import com.kicks.inventory.service.KicksClientService;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -20,9 +23,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import com.kicks.inventory.dao.ShoesDAO;
-import com.kicks.inventory.function.AddShoe;
-import com.kicks.inventory.function.ModifyShoe;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -34,22 +34,23 @@ public class ShoeStoreUI extends Application {
     public static final int ITEMS_PER_PAGE = 20;
     private TableView<Shoe> table;
     private Stage primaryStage;
-    private ShoesDAO dao;
+    private KicksClientService service;
     private String currentBrand = "Show All";
 
     private static final DecimalFormat DF = new DecimalFormat("#.00");
 
     @Override
     public void start(Stage primaryStage) {
+        service = KicksClientService.getInstance();
+
         this.primaryStage = primaryStage;
-        dao = ShoesDAO.getInstance();
         loadShoes();
 
         table = createTable();
         addRowDoubleClickHandler(table);
 
         ShoeTablePagination tablePagination = new ShoeTablePagination();
-        Pagination pagination = tablePagination.createPagination(dao.getShoes(), table);
+        Pagination pagination = tablePagination.createPagination(service.getShoes(), table);
         VBox buttonBox = createButtonBox(pagination);
 
         BorderPane borderPane = new BorderPane();
@@ -66,7 +67,7 @@ public class ShoeStoreUI extends Application {
 
         refreshButton.setOnAction(event -> {
             loadShoes();
-            table.setItems(FXCollections.observableArrayList(dao.getShoes()));
+            table.setItems(FXCollections.observableArrayList(service.getShoes()));
             table.refresh();
         });
 
@@ -80,7 +81,7 @@ public class ShoeStoreUI extends Application {
     }
 
     private void loadShoes() {
-        dao.loadShoes();
+        service.loadShoes();
     }
 
     private TableView<Shoe> createTable() {
@@ -189,7 +190,7 @@ public class ShoeStoreUI extends Application {
         addButton.setPrefWidth(BUTTON_WIDTH);
         addButton.setOnAction(e -> {
             AddShoe addShoe = new AddShoe(primaryStage, pagination);
-            addShoe.addShoe(table, dao.getShoes(), "");
+            addShoe.addShoe(table, service.getShoes(), "");
 
         });
 
@@ -220,29 +221,29 @@ public class ShoeStoreUI extends Application {
         String displayBrand;
         if(currentBrand.equalsIgnoreCase("Show All")){
             displayBrand = "All";
-            totCount = dao.getShoes().stream()
+            totCount = service.getShoes().stream()
                     .mapToInt(Shoe::getQuantity)
                     .sum();
 
-            priceSum = dao.getShoes().stream()
+            priceSum = service.getShoes().stream()
                     .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
                     .sum();
 
-            estSalePriceDiffSum = dao.getShoes().stream()
+            estSalePriceDiffSum = service.getShoes().stream()
                     .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
                     .sum();
         }
         else {
             displayBrand = currentBrand;
-            totCount = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+            totCount = service.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToInt(Shoe::getQuantity)
                     .sum();
 
-            priceSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+            priceSum = service.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
                     .sum();
 
-            estSalePriceDiffSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+            estSalePriceDiffSum = service.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
                     .sum();
         }
@@ -325,8 +326,8 @@ public class ShoeStoreUI extends Application {
     private Callback<Integer, Node> createPageFactory() {
         return pageIndex -> {
             int fromIndex = pageIndex * ITEMS_PER_PAGE;
-            int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, dao.getShoes().size());
-            table.setItems(FXCollections.observableList(dao.getShoes().subList(fromIndex, toIndex)));
+            int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, service.getShoes().size());
+            table.setItems(FXCollections.observableList(service.getShoes().subList(fromIndex, toIndex)));
             return table;
         };
     }
@@ -339,7 +340,7 @@ public class ShoeStoreUI extends Application {
                             || shoe.getSku().toLowerCase().contains(searchTerm.toLowerCase())
                             || shoe.getStyleCode().toLowerCase().contains(searchTerm.toLowerCase())
                             || shoe.getColorway().toLowerCase().contains(searchTerm.toLowerCase());
-            List<Shoe> filteredShoes = dao.getShoes().stream()
+            List<Shoe> filteredShoes = service.getShoes().stream()
                     .filter(searchPredicate)
                     .collect(Collectors.toList());
             int fromIndex = pageIndex * ITEMS_PER_PAGE;
@@ -370,11 +371,11 @@ public class ShoeStoreUI extends Application {
             String selectedBrand = brandFilter.getSelectionModel().getSelectedItem();
             if (selectedBrand != null && selectedBrand.equals("Show All")) {
                 // reset the pagination to its original state
-                pagination.setPageCount((int) Math.ceil((double) dao.getShoes().size() / ITEMS_PER_PAGE));
-                pagination.setPageFactory(ShoeTablePagination.pageFactory(dao.getShoes(), table));
+                pagination.setPageCount((int) Math.ceil((double) service.getShoes().size() / ITEMS_PER_PAGE));
+                pagination.setPageFactory(ShoeTablePagination.pageFactory(service.getShoes(), table));
             } else {
                 Predicate<Shoe> brandPredicate = shoe -> shoe.getBrand().equals(selectedBrand);
-                List<Shoe> filteredShoes = dao.getShoes().stream()
+                List<Shoe> filteredShoes = service.getShoes().stream()
                         .filter(brandPredicate)
                         .collect(Collectors.toList());
                 pagination.setPageCount((int) Math.ceil((double) filteredShoes.size() / ITEMS_PER_PAGE));
@@ -400,7 +401,7 @@ public class ShoeStoreUI extends Application {
         };
 
         // add the listener to the shoes list
-        dao.getShoes().addListener(shoesListener);
+        service.getShoes().addListener(shoesListener);
         HBox filterBox = new HBox(new Label("Filter by Brand:"), brandFilter, showAllCheckBox);
         filterBox.setAlignment(Pos.CENTER_LEFT);
         filterBox.setPadding(new Insets(10));
@@ -413,7 +414,7 @@ public class ShoeStoreUI extends Application {
 
     // helper method to create the brand options list
     private List<String> createBrandOptionsList() {
-        List<String> brandOptions = dao.getShoes().stream()
+        List<String> brandOptions = service.getShoes().stream()
                 .map(Shoe::getBrand)
                 .distinct()
                 .sorted()
@@ -431,7 +432,7 @@ public class ShoeStoreUI extends Application {
         skuTextField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 String sku = skuTextField.getText();
-                Shoe shoe = dao.getShoe(sku);
+                Shoe shoe = service.getShoe(sku);
 
                 if (shoe != null) {
                     // SKU exists, call modifyShoe method
@@ -441,7 +442,7 @@ public class ShoeStoreUI extends Application {
                 } else {
                     // SKU does not exist, call addShoe method
                     AddShoe addShoe = new AddShoe(primaryStage, pagination);
-                    addShoe.addShoe(table, dao.getShoes(), sku);
+                    addShoe.addShoe(table, service.getShoes(), sku);
 
                 }
                 Platform.runLater(skuTextField::requestFocus);
