@@ -45,13 +45,7 @@ public class KicksClientImpl implements KicksClient {
 
             // Handle the response
             if (response.getStatusLine().getStatusCode() == 200) {
-                HttpEntity entity = response.getEntity();
-                String responseBody = EntityUtils.toString(entity);
-                System.out.println(responseBody);  // Print the response body
-
                 return true;
-            } else {
-                // Handle the error response
             }
         } catch (IOException e) {
             // Handle the exception

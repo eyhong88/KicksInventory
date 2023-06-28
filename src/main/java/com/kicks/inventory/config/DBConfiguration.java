@@ -15,6 +15,7 @@ public class DBConfiguration {
         try {
             return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
         } catch (SQLException e) {
+            System.out.println("Unable to connect to Database.");
             e.printStackTrace();
         }
 

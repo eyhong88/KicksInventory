@@ -8,6 +8,7 @@ import com.kicks.inventory.dao.ShoesDAO;
 import javafx.collections.ObservableList;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class KicksClientService {
@@ -36,7 +37,9 @@ public class KicksClientService {
 
         if(ping()) {
             result = client.getShoes();
-            dao.getShoes().setAll(result);
+            if(null != result && !result.isEmpty()) {
+                dao.getShoes().setAll(result);
+            }
         }
         else dao.loadShoes();
     }
