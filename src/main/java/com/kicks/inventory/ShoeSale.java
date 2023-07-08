@@ -8,11 +8,32 @@ public class ShoeSale {
     private String sku;
     private double price;
     private LocalDate saleDate;
+    private int vendorId;
+    private double totalPayout;
 
-    public ShoeSale(String sku, double price, LocalDate saleDate) {
+    public ShoeSale(String sku, double price, LocalDate saleDate, int vendorId, double totalPayout) {
         this.sku = sku;
         this.price = price;
         this.saleDate = saleDate;
+        this.vendorId = vendorId;
+        this.totalPayout = totalPayout;
+
+    }
+
+    public double getTotalPayout() {
+        return totalPayout;
+    }
+
+    public void setTotalPayout(double totalPayout) {
+        this.totalPayout = totalPayout;
+    }
+
+    public int getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(int vendorId) {
+        this.vendorId = vendorId;
     }
 
     public int getId() {

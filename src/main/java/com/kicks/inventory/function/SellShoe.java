@@ -1,16 +1,16 @@
 package com.kicks.inventory.function;
 
 import com.kicks.inventory.PopupStage;
+import com.kicks.inventory.Vendor;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -18,11 +18,21 @@ import com.kicks.inventory.Shoe;
 import com.kicks.inventory.ShoeSale;
 import com.kicks.inventory.dao.ShoesDAO;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SellShoe {
+    private static final double tax = 0.05300126;
     private static ShoesDAO dao;
+
+    private static Vendor vendor;
+
+    private static double payOut;
+
     public static VBox sellShoe(Stage modifyStage, TableView<Shoe> table, Shoe shoe, TextField quantityTextField) {
         dao = ShoesDAO.getInstance();
 
@@ -37,6 +47,14 @@ public class SellShoe {
             }
         });
 
+        // Create a ComboBox for the vendor selection
+        ComboBox<String> vendorComboBox = new ComboBox<>();
+        List<Vendor> vendors = dao.getVendors();
+        List<String> vendorNames = vendors.stream().map(Vendor::getVendorName).collect(Collectors.toList());
+        vendorComboBox.getItems().addAll(vendorNames);
+        // Create a label to display the vendor fee
+        Label vendorFeeLabel = new Label();
+
         // Set the current date as the default sale date
         saleDateTextField.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
 
@@ -44,13 +62,67 @@ public class SellShoe {
         TextField skuTextField = new TextField(shoe.getSku());
         skuTextField.setEditable(false);
 
+        TextField totalPayoutTextField = new TextField();
+        totalPayoutTextField.setEditable(false);
+        totalPayoutTextField.setVisible(false);
+
+        Button sellButton = sellButton(vendorComboBox, priceTextField, saleDateTextField, quantityTextField, totalPayoutTextField,
+                vendors, vendorFeeLabel, shoe, modifyStage, table);
+
+        // Create a GridPane to hold the TextFields, ComboBox, and the Sell button
+        GridPane gridPane = setupGridPane(priceTextField, saleDateTextField, totalPayoutTextField, vendorComboBox, vendorFeeLabel, skuTextField, sellButton);
+
+        return new VBox(gridPane);
+    }
+
+    private static Button sellButton(ComboBox<String> vendorComboBox,
+                                     TextField priceTextField,
+                                     TextField saleDateTextField,
+                                     TextField quantityTextField,
+                                     TextField totalPayoutTextField,
+                                     List<Vendor> vendors,
+                                     Label vendorFeeLabel,
+                                     Shoe shoe,
+                                     Stage modifyStage,
+                                     TableView<Shoe> table) {
+
         Button sellButton = new Button("Sell");
+        // Create a BooleanBinding that checks if both vendor and price are entered
+        BooleanBinding isSellButtonDisabled = Bindings.createBooleanBinding(
+                () -> vendorComboBox.getValue() == null || priceTextField.getText().isEmpty(),
+                vendorComboBox.valueProperty(),
+                priceTextField.textProperty()
+        );
+
+        sellButton.disableProperty().bind(isSellButtonDisabled); // Disable the Sell button when the BooleanBinding is true
+
+        vendorComboBox.setOnAction(event -> {
+            // Get the selected vendor from the ComboBox
+            String selectedVendor = vendorComboBox.getValue();
+            if (selectedVendor != null) {
+                Optional<Vendor> vendOpt = vendors.stream().filter(v -> v.getVendorName().equalsIgnoreCase(selectedVendor))
+                        .findFirst();
+
+                if (vendOpt.isPresent()) {
+                    vendor = vendOpt.get();
+                    vendorFeeLabel.setText("Vendor Fee: " + (100 * vendor.getVendorFee()) + "%");
+                    totalPayoutTextField.setVisible(true); // Show the total payout text field
+                    payOut = updateTotalPayout(totalPayoutTextField, priceTextField.getText());
+
+                }
+            } else {
+                vendor = null;
+                vendorFeeLabel.setText(""); // Clear the vendor fee label if no vendor is selected
+                totalPayoutTextField.setVisible(false); // Hide the total payout text field
+            }
+        });
+
+
         sellButton.setOnAction(event -> {
             // Get the values from the TextFields
             double price = Double.parseDouble(priceTextField.getText());
             // Get the sale date from the sale date field
             LocalDate saleDate = LocalDate.parse(saleDateTextField.getText(), DateTimeFormatter.ofPattern("MM/dd/yyyy"));
-
 
             // Decrement the quantity of the Shoe
             int quantity = shoe.getQuantity();
@@ -77,17 +149,39 @@ public class SellShoe {
                 quantityTextField.setText(String.valueOf(shoe.getQuantity()));
 
                 // Insert a new ShoeSale record
-                ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate);
+                ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate, vendor.getId(), payOut);
                 dao.addShoeSale(sale);
 
                 // Refresh the shoe list
                 table.setItems(FXCollections.observableArrayList(dao.getShoes()));
             }
 
+            totalPayoutTextField.clear();
+            priceTextField.clear();
+            vendorFeeLabel.setVisible(true);
+
             table.refresh();
         });
 
-        // Create a GridPane to hold the TextFields and the Sell button
+        return sellButton;
+    }
+    private static double updateTotalPayout(TextField totalPayoutTextField, String priceText) {
+        double payOut = 0.0;
+        if (priceText.isEmpty()) {
+            totalPayoutTextField.clear();
+        } else {
+            double price = Double.parseDouble(priceText);
+            double taxedPrice = price + (price * tax);
+            payOut = price - (taxedPrice * vendor.getVendorFee());
+            totalPayoutTextField.setText(String.valueOf((new DecimalFormat("#.00")).format(payOut)));
+        }
+
+        return payOut;
+    }
+    private static GridPane setupGridPane(TextField priceTextField, TextField saleDateTextField,
+                                          TextField totalPayoutTextField, ComboBox<String> vendorComboBox,
+                                          Label vendorFeeLabel, TextField skuTextField, Button sellButton) {
+
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(10));
         gridPane.setHgap(10);
@@ -99,11 +193,18 @@ public class SellShoe {
         gridPane.add(priceTextField, 1, 1);
         gridPane.add(new Label("Sale Date:"), 0, 2);
         gridPane.add(saleDateTextField, 1, 2);
+        gridPane.add(new Label("Vendor:"), 0, 3);
+        gridPane.add(vendorComboBox, 1, 3);
+        gridPane.add(vendorFeeLabel, 1, 4);
+        gridPane.add(new Label("Total Payout:"), 0, 5);
+        gridPane.add(totalPayoutTextField, 1, 5);
+        // Create a label and text field for the total payout
         GridPane.setHalignment(sellButton, HPos.CENTER);
-        gridPane.add(sellButton, 1, 3);
-
-        return new VBox(gridPane);
+        gridPane.add(sellButton, 1, 20);
+        return gridPane;
     }
+
+
 
 
 }

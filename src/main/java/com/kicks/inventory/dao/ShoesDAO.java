@@ -2,6 +2,7 @@ package com.kicks.inventory.dao;
 
 import com.kicks.inventory.Shoe;
 import com.kicks.inventory.ShoeSale;
+import com.kicks.inventory.Vendor;
 import com.kicks.inventory.config.DBConfiguration;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -80,12 +81,14 @@ public class ShoesDAO {
         }
     }
     public void addShoeSale(ShoeSale sale) {
-        String sql = "INSERT INTO shoe_sale (sku, price, sale_date) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO shoe_sale (sku, sale_price, sale_date, vendor_id, total_payout) VALUES (?, ?, ?, ?, ?)";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setString(1, sale.getSku());
             stmt.setDouble(2, sale.getPrice());
             stmt.setDate(3, Date.valueOf(sale.getSaleDate()));
+            stmt.setInt(4, sale.getVendorId());
+            stmt.setDouble(5, sale.getTotalPayout());
             stmt.executeUpdate();
             stmt.close();
         } catch (SQLException e) {
@@ -148,6 +151,29 @@ public class ShoesDAO {
         }
 
         return null;
+    }
+
+    public List<Vendor> getVendors() {
+        List<Vendor> result = new ArrayList<>();
+
+            String sql = "SELECT id, vendor_name, vendor_fee FROM sale_vendor";
+            try {
+                PreparedStatement stmt = connection.prepareStatement(sql);
+
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    int id = resultSet.getInt("id");
+                    String vendorName = resultSet.getString("vendor_name");
+                    double vendorFee = resultSet.getDouble("vendor_fee");
+
+                    result.add(new Vendor(id, vendorName, vendorFee));
+                }
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+        return result;
     }
 
     public ObservableList<Shoe> getShoes(){
