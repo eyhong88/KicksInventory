@@ -231,6 +231,9 @@ public class ShoeStoreUI extends Application {
             estSalePriceDiffSum = dao.getShoes().stream()
                     .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
                     .sum();
+
+            //TODO Add ShoeSale stats.
+
         }
         else {
             displayBrand = currentBrand;
