@@ -1,5 +1,7 @@
-package com.kicks.inventory;
+package com.kicks.inventory.pagination;
 
+import com.kicks.inventory.ShoeStoreUI;
+import com.kicks.inventory.dto.Shoe;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.Pagination;

@@ -1,4 +1,4 @@
-package com.kicks.inventory;
+package com.kicks.inventory.dto;
 
 import java.time.LocalDate;
 
@@ -10,6 +10,7 @@ public class ShoeSale {
     private LocalDate saleDate;
     private int vendorId;
     private double totalPayout;
+    private String brand;
 
     public ShoeSale(String sku, double price, LocalDate saleDate, int vendorId, double totalPayout) {
         this.sku = sku;
@@ -17,7 +18,22 @@ public class ShoeSale {
         this.saleDate = saleDate;
         this.vendorId = vendorId;
         this.totalPayout = totalPayout;
+    }
 
+    public ShoeSale(String sku, String brand, double price, double totalPayout){
+        this.sku = sku;
+        this.price = price;
+        this.brand = brand;
+        this.totalPayout = totalPayout;
+
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
     public double getTotalPayout() {

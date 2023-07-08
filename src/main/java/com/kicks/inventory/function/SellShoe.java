@@ -1,7 +1,7 @@
 package com.kicks.inventory.function;
 
-import com.kicks.inventory.PopupStage;
-import com.kicks.inventory.Vendor;
+import com.kicks.inventory.util.PopupStage;
+import com.kicks.inventory.dto.Vendor;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -14,8 +14,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import com.kicks.inventory.Shoe;
-import com.kicks.inventory.ShoeSale;
+import com.kicks.inventory.dto.Shoe;
+import com.kicks.inventory.dto.ShoeSale;
 import com.kicks.inventory.dao.ShoesDAO;
 
 import java.text.DecimalFormat;

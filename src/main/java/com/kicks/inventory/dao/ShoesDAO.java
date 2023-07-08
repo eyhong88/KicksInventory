@@ -1,8 +1,8 @@
 package com.kicks.inventory.dao;
 
-import com.kicks.inventory.Shoe;
-import com.kicks.inventory.ShoeSale;
-import com.kicks.inventory.Vendor;
+import com.kicks.inventory.dto.Shoe;
+import com.kicks.inventory.dto.ShoeSale;
+import com.kicks.inventory.dto.Vendor;
 import com.kicks.inventory.config.DBConfiguration;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -172,6 +172,30 @@ public class ShoesDAO {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+
+        return result;
+    }
+
+    public List<ShoeSale> getShoeSales(){
+
+        List<ShoeSale> result = new ArrayList<>();
+
+        String sql = "SELECT si.brand, ss.sku, ss.sale_price, ss.total_payout FROM shoe_inventory si, shoe_sale ss WHERE si.sku = ss.sku";
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+
+            ResultSet resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                String brand = resultSet.getString("brand");
+                String sku = resultSet.getString("sku");
+                double salePrice = resultSet.getDouble("sale_price");
+                double totalPayout = resultSet.getDouble("total_payout");
+                result.add(new ShoeSale(sku, brand, salePrice, totalPayout));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         return result;
     }

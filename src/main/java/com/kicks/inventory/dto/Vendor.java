@@ -1,4 +1,4 @@
-package com.kicks.inventory;
+package com.kicks.inventory.dto;
 
 public class Vendor {
     private int id;
