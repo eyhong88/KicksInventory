@@ -1,6 +1,6 @@
 package com.kicks.inventory.function;
 
-import com.kicks.inventory.PopupStage;
+import com.kicks.inventory.util.PopupStage;
 import com.kicks.inventory.ShoeStoreUI;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,7 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import com.kicks.inventory.Shoe;
+import com.kicks.inventory.dto.Shoe;
 import com.kicks.inventory.dao.ShoesDAO;
 
 public class AddShoe {

@@ -1,5 +1,9 @@
 package com.kicks.inventory;
 
+import com.kicks.inventory.dto.Shoe;
+import com.kicks.inventory.dto.ShoeSale;
+import com.kicks.inventory.pagination.ShoeTablePagination;
+import com.kicks.inventory.util.PopupStage;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -218,6 +222,8 @@ public class ShoeStoreUI extends Application {
         double priceSum;
         double estSalePriceDiffSum;
         String displayBrand;
+        int saleCount;
+        double saleTot;
         if(currentBrand.equalsIgnoreCase("Show All")){
             displayBrand = "All";
             totCount = dao.getShoes().stream()
@@ -232,39 +238,66 @@ public class ShoeStoreUI extends Application {
                     .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
                     .sum();
 
-            //TODO Add ShoeSale stats.
 
+            List<ShoeSale> shoeSales = dao.getShoeSales();
+            saleCount = shoeSales.size();
+            saleTot = shoeSales.stream().mapToDouble(ShoeSale::getTotalPayout).sum();
         }
         else {
             displayBrand = currentBrand;
-            totCount = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+            totCount = dao.getShoes().stream()
+                    .filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToInt(Shoe::getQuantity)
                     .sum();
 
-            priceSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+            priceSum = dao.getShoes().stream()
+                    .filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
                     .sum();
 
-            estSalePriceDiffSum = dao.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
+            estSalePriceDiffSum = dao.getShoes().stream()
+                    .filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
+                    .sum();
+
+            List<ShoeSale> shoeSales = dao.getShoeSales();
+            saleCount = (int) shoeSales.stream()
+                    .filter(sale -> sale.getBrand().equalsIgnoreCase(currentBrand))
+                    .count();
+            saleTot = shoeSales.stream()
+                    .filter(sale -> sale.getBrand().equalsIgnoreCase(currentBrand))
+                    .mapToDouble(ShoeSale::getTotalPayout)
                     .sum();
         }
         // create labels for the shoe count, total price, and estSalePrice - Price sum
         Label brandLabel = new Label("Stats for " + displayBrand);
-        Label countLabel = new Label("Total shoe count: " + totCount);
-        Label priceLabel = new Label("Total price: $" + DF.format(priceSum));
-        Label estSalePriceDiffLabel = new Label("Total difference: $" + DF.format(estSalePriceDiffSum));
-        Label gainsPercentLabel = new Label("% difference: " + DF.format((estSalePriceDiffSum / priceSum) * 100)  + "%");
+        Label countLabel = new Label("Total Shoe Count: " + totCount);
+        Label priceLabel = new Label("Total Price: $" + DF.format(priceSum));
+        Label estSalePriceDiffLabel = new Label("Total Difference: $" + DF.format(estSalePriceDiffSum));
+        Label gainsPercentLabel = new Label("% Difference: " + DF.format((estSalePriceDiffSum / priceSum) * 100)  + "%");
+        Label salesTexTLabel = new Label();
+        Label saleCountLabel = new Label();
+        Label saleTotalLabel = new Label();
+        if(saleCount > 0){
+            salesTexTLabel = new Label("SALES");
+            saleCountLabel = new Label("Shoes Sold: " +  saleCount);
+            saleTotalLabel = new Label("Earned: $" + DF.format(saleTot));
+            saleCountLabel.setStyle(getStyle());
+            saleTotalLabel.setStyle(getStyle());
+        }
 
         // set the style of the labels using CSS
-        brandLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
-        countLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
-        priceLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
-        estSalePriceDiffLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
-        gainsPercentLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
+        brandLabel.setStyle(getStyle());
+        countLabel.setStyle(getStyle());
+        priceLabel.setStyle(getStyle());
+        estSalePriceDiffLabel.setStyle(getStyle());
+        gainsPercentLabel.setStyle(getStyle());
+        saleCountLabel.setStyle(getStyle());
+        saleTotalLabel.setStyle(getStyle());
+        salesTexTLabel.setStyle("-fx-underline: true;"+getStyle());
 
         // create a VBox to hold the labels
-        VBox vbox = new VBox(brandLabel, countLabel, priceLabel, estSalePriceDiffLabel, gainsPercentLabel);
+        VBox vbox = new VBox(brandLabel, countLabel, priceLabel, estSalePriceDiffLabel, gainsPercentLabel, salesTexTLabel, saleCountLabel, saleTotalLabel);
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(10);
 
@@ -279,6 +312,9 @@ public class ShoeStoreUI extends Application {
         statsStage.show();
     }
 
+    private static String getStyle() {
+        return "-fx-font-size: 24px; -fx-text-fill: white;";
+    }
 
 
     private HBox createSearchBar(Pagination pagination) {
