@@ -1,5 +1,7 @@
 package com.kicks.inventory.function;
 
+import com.kicks.inventory.factory.PayOutFactory;
+import com.kicks.inventory.service.PayOut;
 import com.kicks.inventory.util.PopupStage;
 import com.kicks.inventory.dto.Vendor;
 import javafx.application.Platform;
@@ -26,7 +28,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SellShoe {
-    private static final double tax = 0.05300126;
     private static ShoesDAO dao;
 
     private static Vendor vendor;
@@ -38,6 +39,7 @@ public class SellShoe {
 
         // Create TextFields for the ShoeSale fields
         TextField priceTextField = new TextField();
+        TextField taxTextField = new TextField();
         TextField saleDateTextField = new TextField();
         // Set the prompt text for the sale date field and add a listener to select all text when focused
         saleDateTextField.setPromptText("MM/dd/yyyy");
@@ -66,11 +68,11 @@ public class SellShoe {
         totalPayoutTextField.setEditable(false);
         totalPayoutTextField.setVisible(false);
 
-        Button sellButton = sellButton(vendorComboBox, priceTextField, saleDateTextField, quantityTextField, totalPayoutTextField,
+        Button sellButton = sellButton(vendorComboBox, priceTextField, saleDateTextField, quantityTextField, totalPayoutTextField, taxTextField,
                 vendors, vendorFeeLabel, shoe, modifyStage, table);
 
         // Create a GridPane to hold the TextFields, ComboBox, and the Sell button
-        GridPane gridPane = setupGridPane(priceTextField, saleDateTextField, totalPayoutTextField, vendorComboBox, vendorFeeLabel, skuTextField, sellButton);
+        GridPane gridPane = setupGridPane(priceTextField, saleDateTextField, totalPayoutTextField, vendorComboBox, vendorFeeLabel, skuTextField, taxTextField, sellButton);
 
         return new VBox(gridPane);
     }
@@ -80,6 +82,7 @@ public class SellShoe {
                                      TextField saleDateTextField,
                                      TextField quantityTextField,
                                      TextField totalPayoutTextField,
+                                     TextField taxTextField,
                                      List<Vendor> vendors,
                                      Label vendorFeeLabel,
                                      Shoe shoe,
@@ -91,7 +94,8 @@ public class SellShoe {
         BooleanBinding isSellButtonDisabled = Bindings.createBooleanBinding(
                 () -> vendorComboBox.getValue() == null || priceTextField.getText().isEmpty(),
                 vendorComboBox.valueProperty(),
-                priceTextField.textProperty()
+                priceTextField.textProperty(),
+                taxTextField.textProperty()
         );
 
         sellButton.disableProperty().bind(isSellButtonDisabled); // Disable the Sell button when the BooleanBinding is true
@@ -107,7 +111,7 @@ public class SellShoe {
                     vendor = vendOpt.get();
                     vendorFeeLabel.setText("Vendor Fee: " + (100 * vendor.getVendorFee()) + "%");
                     totalPayoutTextField.setVisible(true); // Show the total payout text field
-                    payOut = updateTotalPayout(totalPayoutTextField, priceTextField.getText());
+                    payOut = updateTotalPayout(totalPayoutTextField, priceTextField.getText(), taxTextField.getText());
 
                 }
             } else {
@@ -165,14 +169,16 @@ public class SellShoe {
 
         return sellButton;
     }
-    private static double updateTotalPayout(TextField totalPayoutTextField, String priceText) {
+    private static double updateTotalPayout(TextField totalPayoutTextField, String priceText, String taxText) {
         double payOut = 0.0;
         if (priceText.isEmpty()) {
             totalPayoutTextField.clear();
         } else {
+            PayOut po = PayOutFactory.getInstance(vendor);
+
             double price = Double.parseDouble(priceText);
-            double taxedPrice = price + (price * tax);
-            payOut = price - (taxedPrice * vendor.getVendorFee());
+            double tax = Double.parseDouble(taxText);
+            payOut = po.calculate(price, vendor.getVendorFee(), tax);
             totalPayoutTextField.setText(String.valueOf((new DecimalFormat("#.00")).format(payOut)));
         }
 
@@ -180,7 +186,8 @@ public class SellShoe {
     }
     private static GridPane setupGridPane(TextField priceTextField, TextField saleDateTextField,
                                           TextField totalPayoutTextField, ComboBox<String> vendorComboBox,
-                                          Label vendorFeeLabel, TextField skuTextField, Button sellButton) {
+                                          Label vendorFeeLabel, TextField skuTextField, TextField taxTextField,
+                                          Button sellButton) {
 
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(10));
@@ -191,13 +198,15 @@ public class SellShoe {
         gridPane.add(skuTextField, 1, 0);
         gridPane.add(new Label("Price:"), 0, 1);
         gridPane.add(priceTextField, 1, 1);
-        gridPane.add(new Label("Sale Date:"), 0, 2);
-        gridPane.add(saleDateTextField, 1, 2);
-        gridPane.add(new Label("Vendor:"), 0, 3);
-        gridPane.add(vendorComboBox, 1, 3);
-        gridPane.add(vendorFeeLabel, 1, 4);
-        gridPane.add(new Label("Total Payout:"), 0, 5);
-        gridPane.add(totalPayoutTextField, 1, 5);
+        gridPane.add(new Label("Tax:"), 0, 2);
+        gridPane.add(taxTextField, 1, 2);
+        gridPane.add(new Label("Sale Date:"), 0, 3);
+        gridPane.add(saleDateTextField, 1, 3);
+        gridPane.add(new Label("Vendor:"), 0, 4);
+        gridPane.add(vendorComboBox, 1, 4);
+        gridPane.add(vendorFeeLabel, 1, 5);
+        gridPane.add(new Label("Total Payout:"), 0, 6);
+        gridPane.add(totalPayoutTextField, 1, 6);
         // Create a label and text field for the total payout
         GridPane.setHalignment(sellButton, HPos.CENTER);
         gridPane.add(sellButton, 1, 20);
