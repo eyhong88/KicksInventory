@@ -31,4 +31,4 @@ CREATE TABLE sale_vendor(
 );
 
 INSERT INTO sale_vendor VALUES (1, 'Ebay', .08, '8% Processing Fee');
-INSERT INTO sale_vendor VALUES (2, 'StockX', .13, '10% Transaction Fee + 3% Payment Processing Fee + $4 Shipping');
+INSERT INTO sale_vendor VALUES (2, 'StockX', .12, '9% Transaction Fee + 3% Payment Processing Fee + $4 Shipping');
