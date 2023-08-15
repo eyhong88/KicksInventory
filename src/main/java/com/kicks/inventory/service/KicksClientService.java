@@ -1,14 +1,13 @@
 package com.kicks.inventory.service;
 
-import com.kicks.inventory.Shoe;
-import com.kicks.inventory.ShoeSale;
 import com.kicks.inventory.client.KicksClient;
 import com.kicks.inventory.client.KicksClientImpl;
 import com.kicks.inventory.dao.ShoesDAO;
+import com.kicks.inventory.dto.Shoe;
+import com.kicks.inventory.dto.ShoeSale;
+import com.kicks.inventory.dto.Vendor;
 import javafx.collections.ObservableList;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class KicksClientService {
@@ -77,5 +76,21 @@ public class KicksClientService {
     public void addShoeSale(ShoeSale sale){
         if(ping()) client.addShoeSale(sale);
         else dao.addShoeSale(sale);
+    }
+
+    public List<ShoeSale> getShoeSales() {
+        List<ShoeSale> result;
+        if(ping()) result = client.getShoeSales();
+        else result = dao.getShoeSales();
+
+        return result;
+    }
+
+    public List<Vendor> getVendors() {
+        List<Vendor> result;
+        if(ping()) result = client.getVendors();
+        else result = dao.getVendors();
+
+        return result;
     }
 }

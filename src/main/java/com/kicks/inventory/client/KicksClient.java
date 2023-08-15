@@ -1,7 +1,6 @@
 package com.kicks.inventory.client;
 
-import com.kicks.inventory.Shoe;
-import com.kicks.inventory.ShoeSale;
+import com.kicks.inventory.dto.*;
 
 import java.util.List;
 
@@ -12,4 +11,6 @@ public interface KicksClient {
     void updateShoe(Shoe shoe);
     Shoe getShoe(String sku);
     void addShoeSale(ShoeSale sale);
+    List<ShoeSale> getShoeSales();
+    List<Vendor> getVendors();
 }

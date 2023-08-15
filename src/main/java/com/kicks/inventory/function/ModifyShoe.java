@@ -1,8 +1,8 @@
 package com.kicks.inventory.function;
 
-import com.kicks.inventory.util.PopupStage;
-import com.kicks.inventory.PopupStage;
+import com.kicks.inventory.dto.Shoe;
 import com.kicks.inventory.service.KicksClientService;
+import com.kicks.inventory.util.PopupStage;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -12,8 +12,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import com.kicks.inventory.dto.Shoe;
-import com.kicks.inventory.dao.ShoesDAO;
 
 public class ModifyShoe {
 

@@ -3,8 +3,10 @@ package com.kicks.inventory.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kicks.inventory.Shoe;
-import com.kicks.inventory.ShoeSale;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kicks.inventory.dto.Shoe;
+import com.kicks.inventory.dto.ShoeSale;
+import com.kicks.inventory.dto.Vendor;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -88,7 +90,6 @@ public class KicksClientImpl implements KicksClient {
 
         return false;
     }
-
 
     @Override
     public List<Shoe> getShoes() {
@@ -192,6 +193,28 @@ public class KicksClientImpl implements KicksClient {
         }
     }
 
+    @Override
+    public List<ShoeSale> getShoeSales() {
+        try {
+            HttpGet request = new HttpGet(getBaseUrl() + "/inventory/shoes/sold");
+            HttpResponse response = httpClient.execute(request);
+
+            // Handle the response and parse the list of shoes
+            if (response.getStatusLine().getStatusCode() == 200) {
+                HttpEntity entity = response.getEntity();
+                String responseBody = EntityUtils.toString(entity);
+                List<ShoeSale> shoes = parseResponseToObject(responseBody, new TypeReference<List<ShoeSale>>() {});
+                EntityUtils.consume(entity);
+                return shoes;
+            } else {
+                // Handle the error response
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
     @Override
     public Shoe getShoe(String sku) {
@@ -220,9 +243,36 @@ public class KicksClientImpl implements KicksClient {
         return null;
     }
 
+    @Override
+    public List<Vendor> getVendors() {
+        try {
+            HttpGet request = new HttpGet(getBaseUrl() + "/inventory/shoes/vendors");
+            HttpResponse response = httpClient.execute(request);
+
+            // Handle the response and parse the Shoe object
+            if (response.getStatusLine().getStatusCode() == 200) {
+                HttpEntity entity = response.getEntity();
+                String responseBody = EntityUtils.toString(entity);
+
+                if(!responseBody.isEmpty()) {
+                    List<Vendor> vendors = parseResponseToObject(responseBody, new TypeReference<List<Vendor>>() {});
+                    EntityUtils.consume(entity);
+                    return vendors;
+                }
+            } else {
+                // Handle the error response
+            }
+        } catch (IOException e) {
+            // Handle the exception
+        }
+
+        return null;
+    }
+
     private <T> T parseResponseToObject(String responseBody, TypeReference<T> typeReference) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
             return objectMapper.readValue(responseBody, typeReference);
         } catch (IOException e) {
             // Handle the exception
@@ -234,6 +284,7 @@ public class KicksClientImpl implements KicksClient {
     private String objectToJsonString(Object object) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             // Handle the exception

@@ -1,9 +1,9 @@
 package com.kicks.inventory.dao;
 
+import com.kicks.inventory.config.DBConfiguration;
 import com.kicks.inventory.dto.Shoe;
 import com.kicks.inventory.dto.ShoeSale;
 import com.kicks.inventory.dto.Vendor;
-import com.kicks.inventory.config.DBConfiguration;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -175,29 +175,57 @@ public class ShoesDAO {
         return result;
     }
 
-    public List<ShoeSale> getShoeSales(){
-
-        List<ShoeSale> result = new ArrayList<>();
-
-        String sql = "SELECT si.brand, ss.sku, ss.sale_price, ss.total_payout FROM shoe_inventory si, shoe_sale ss WHERE si.sku = ss.sku";
+    public List<ShoeSale> getShoeSales() {
+        List<ShoeSale> shoeList = new ArrayList<>();
         try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-
-            ResultSet resultSet = stmt.executeQuery();
-            while (resultSet.next()) {
+            Statement stmt = connection.createStatement();
+            ResultSet resultSet = stmt.executeQuery("SELECT si.brand, si.model, si.colorway, si.size, si.price, si.style_code, si.sku, ss.* FROM shoe_inventory si, shoe_sale ss WHERE si.sku = ss.sku;");
+            while(resultSet.next()){
                 String brand = resultSet.getString("brand");
+                String model = resultSet.getString("model");
+                String colorway = resultSet.getString("colorway");
+                int size = resultSet.getInt("size");
+                double price = resultSet.getDouble("price");
+                String style_code = resultSet.getString("style_code");
                 String sku = resultSet.getString("sku");
                 double salePrice = resultSet.getDouble("sale_price");
                 double totalPayout = resultSet.getDouble("total_payout");
-                result.add(new ShoeSale(sku, brand, salePrice, totalPayout));
+                int vendorId = resultSet.getInt("vendor_id");
+                String saleDate = resultSet.getDate("sale_date").toLocalDate().toString();
+                int id = resultSet.getInt("id");
+                shoeList.add(new ShoeSale(id, saleDate, vendorId, brand, model, colorway, size, price, style_code, sku, salePrice, totalPayout));
             }
-
+            stmt.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        return result;
+        return shoeList;
     }
+
+//    public List<ShoeSale> getShoeSales(){
+//
+//        List<ShoeSale> result = new ArrayList<>();
+//
+//        String sql = "SELECT si.brand, ss.sku, ss.sale_price, ss.total_payout FROM shoe_inventory si, shoe_sale ss WHERE si.sku = ss.sku";
+//        try {
+//            PreparedStatement stmt = connection.prepareStatement(sql);
+//
+//            ResultSet resultSet = stmt.executeQuery();
+//            while (resultSet.next()) {
+//                String brand = resultSet.getString("brand");
+//                String sku = resultSet.getString("sku");
+//                double salePrice = resultSet.getDouble("sale_price");
+//                double totalPayout = resultSet.getDouble("total_payout");
+//                result.add(new ShoeSale(sku, brand, salePrice, totalPayout));
+//            }
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        return result;
+//    }
 
     public ObservableList<Shoe> getShoes(){
         return shoes;

@@ -20,7 +20,7 @@ import com.kicks.inventory.dao.ShoesDAO;
 public class AddShoe {
     private final Pagination pagination;
     private final Stage primaryStage;
-    KicksClientService service;
+    private final KicksClientService service;
 
     public AddShoe(Stage primaryStage, Pagination pagination){
         this.pagination = pagination;

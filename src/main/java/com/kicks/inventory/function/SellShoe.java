@@ -1,10 +1,13 @@
 package com.kicks.inventory.function;
 
+import com.kicks.inventory.dao.ShoesDAO;
+import com.kicks.inventory.dto.Shoe;
+import com.kicks.inventory.dto.ShoeSale;
+import com.kicks.inventory.dto.Vendor;
 import com.kicks.inventory.factory.PayOutFactory;
+import com.kicks.inventory.service.KicksClientService;
 import com.kicks.inventory.service.PayOut;
 import com.kicks.inventory.util.PopupStage;
-import com.kicks.inventory.dto.Vendor;
-import com.kicks.inventory.service.KicksClientService;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -17,9 +20,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import com.kicks.inventory.dto.Shoe;
-import com.kicks.inventory.dto.ShoeSale;
-import com.kicks.inventory.dao.ShoesDAO;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -30,11 +30,8 @@ import java.util.stream.Collectors;
 
 public class SellShoe {
     private static ShoesDAO dao;
-
     private static Vendor vendor;
-
     private static double payOut;
-
     private static KicksClientService service;
     public static VBox sellShoe(Stage modifyStage, TableView<Shoe> table, Shoe shoe, TextField quantityTextField) {
         service = KicksClientService.getInstance();
@@ -53,7 +50,7 @@ public class SellShoe {
 
         // Create a ComboBox for the vendor selection
         ComboBox<String> vendorComboBox = new ComboBox<>();
-        List<Vendor> vendors = dao.getVendors();
+        List<Vendor> vendors = service.getVendors();
         List<String> vendorNames = vendors.stream().map(Vendor::getVendorName).collect(Collectors.toList());
         vendorComboBox.getItems().addAll(vendorNames);
         // Create a label to display the vendor fee
@@ -155,9 +152,7 @@ public class SellShoe {
                 quantityTextField.setText(String.valueOf(shoe.getQuantity()));
 
                 // Insert a new ShoeSale record
-                ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate, vendor.getId(), payOut);
-                dao.addShoeSale(sale);
-                ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate);
+                ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate.toString(), vendor.getId(), payOut);
                 service.addShoeSale(sale);
 
                 // Refresh the shoe list

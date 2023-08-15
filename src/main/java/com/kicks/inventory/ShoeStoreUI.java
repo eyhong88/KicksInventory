@@ -240,31 +240,25 @@ public class ShoeStoreUI extends Application {
                     .sum();
 
 
-            List<ShoeSale> shoeSales = dao.getShoeSales();
+            List<ShoeSale> shoeSales = service.getShoeSales();
             saleCount = shoeSales.size();
             saleTot = shoeSales.stream().mapToDouble(ShoeSale::getTotalPayout).sum();
         }
         else {
             displayBrand = currentBrand;
-            totCount = dao.getShoes().stream()
-                    .filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
             totCount = service.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToInt(Shoe::getQuantity)
                     .sum();
 
-            priceSum = dao.getShoes().stream()
-                    .filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
             priceSum = service.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> shoe.getPrice() * shoe.getQuantity())
                     .sum();
 
-            estSalePriceDiffSum = dao.getShoes().stream()
-                    .filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
             estSalePriceDiffSum = service.getShoes().stream().filter(shoe -> shoe.getBrand().equalsIgnoreCase(currentBrand))
                     .mapToDouble(shoe -> (shoe.getEstSalePrice() - shoe.getPrice()) * shoe.getQuantity())
                     .sum();
 
-            List<ShoeSale> shoeSales = dao.getShoeSales();
+            List<ShoeSale> shoeSales = service.getShoeSales();
             saleCount = (int) shoeSales.stream()
                     .filter(sale -> sale.getBrand().equalsIgnoreCase(currentBrand))
                     .count();

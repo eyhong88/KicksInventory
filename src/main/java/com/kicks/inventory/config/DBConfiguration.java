@@ -9,8 +9,6 @@ public class DBConfiguration {
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
 
-
-
     public static Connection configure(){
         try {
             return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);

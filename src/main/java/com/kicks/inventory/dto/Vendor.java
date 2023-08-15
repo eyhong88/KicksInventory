@@ -5,6 +5,7 @@ public class Vendor {
     private String vendorName;
     private double vendorFee;
 
+    public Vendor(){}
     public Vendor(int id, String vendorName, double vendorFee){
         this.id = id;
         this.vendorName = vendorName;
