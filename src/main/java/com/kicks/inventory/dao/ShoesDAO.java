@@ -77,7 +77,6 @@ public class ShoesDAO {
             stmt.close();
         } catch (SQLException e){
             System.out.println("Could not insert to database.");
-            e.printStackTrace();
         }
     }
     public void addShoeSale(ShoeSale sale) {

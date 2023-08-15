@@ -1,6 +1,8 @@
 package com.kicks.inventory.function;
 
 import com.kicks.inventory.util.PopupStage;
+import com.kicks.inventory.PopupStage;
+import com.kicks.inventory.service.KicksClientService;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -15,10 +17,10 @@ import com.kicks.inventory.dao.ShoesDAO;
 
 public class ModifyShoe {
 
-    private ShoesDAO dao;
+    private KicksClientService service;
 
     public void modifyShoe(Stage primaryStage, Shoe shoe, TableView<Shoe> table, String sku){
-        dao = ShoesDAO.getInstance();
+        service = KicksClientService.getInstance();
 
         Stage popupStage = PopupStage.createPopupStage(primaryStage, "Modify/Sell Shoe");
         popupStage.initOwner(table.getScene().getWindow());
@@ -84,7 +86,7 @@ public class ModifyShoe {
             shoe.setStyleCode(styleCodeTextField.getText());
             shoe.setSku(skuTextField.getText());
 
-            dao.updateShoe(shoe);
+            service.updateShoe(shoe);
 
             // Refresh the table view to reflect the changes
             table.refresh();

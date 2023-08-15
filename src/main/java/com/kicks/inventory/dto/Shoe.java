@@ -1,5 +1,7 @@
 package com.kicks.inventory.dto;
 
+import java.util.Objects;
+
 public class Shoe {
     private double size;
     private String brand;
@@ -12,6 +14,9 @@ public class Shoe {
 
     private String colorway;
 
+    public Shoe(){
+
+    }
     public Shoe(double estSalePrice, String colorway, double size, String model, String brand, double price, int quantity, String styleCode, String sku) {
         this.model = model;
         this.brand = brand;
@@ -90,5 +95,31 @@ public class Shoe {
 
     public void setSize(double size){
         this.size = size;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Shoe other = (Shoe) obj;
+        return Double.compare(other.size, size) == 0 &&
+                Double.compare(other.price, price) == 0 &&
+                Double.compare(other.estSalePrice, estSalePrice) == 0 &&
+                quantity == other.quantity &&
+                Objects.equals(brand, other.brand) &&
+                Objects.equals(model, other.model) &&
+                Objects.equals(styleCode, other.styleCode) &&
+                Objects.equals(sku, other.sku) &&
+                Objects.equals(colorway, other.colorway);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(size, brand, model, price, estSalePrice, quantity, styleCode, sku, colorway);
     }
 }

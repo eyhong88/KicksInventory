@@ -2,6 +2,7 @@ package com.kicks.inventory.function;
 
 import com.kicks.inventory.util.PopupStage;
 import com.kicks.inventory.ShoeStoreUI;
+import com.kicks.inventory.service.KicksClientService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -19,13 +20,12 @@ import com.kicks.inventory.dao.ShoesDAO;
 public class AddShoe {
     private final Pagination pagination;
     private final Stage primaryStage;
-
-    private ShoesDAO dao;
+    KicksClientService service;
 
     public AddShoe(Stage primaryStage, Pagination pagination){
         this.pagination = pagination;
         this.primaryStage = primaryStage;
-        dao = ShoesDAO.getInstance();
+        service = KicksClientService.getInstance();
     }
 
     public void addShoe(TableView<Shoe> table, ObservableList<Shoe> shoes, String skuStr) {
@@ -70,7 +70,7 @@ public class AddShoe {
             String cw = cwField.getText();
             Shoe shoe = new Shoe(estSalePrice, cw, size, model, brand, price, quantity, styleCode, sku);
 
-            dao.addShoe(shoe);
+            service.addShoe(shoe);
 
             // Update the pagination to display the new shoe
             int pageIndex = pagination.getCurrentPageIndex();

@@ -4,6 +4,7 @@ import com.kicks.inventory.factory.PayOutFactory;
 import com.kicks.inventory.service.PayOut;
 import com.kicks.inventory.util.PopupStage;
 import com.kicks.inventory.dto.Vendor;
+import com.kicks.inventory.service.KicksClientService;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -34,8 +35,9 @@ public class SellShoe {
 
     private static double payOut;
 
+    private static KicksClientService service;
     public static VBox sellShoe(Stage modifyStage, TableView<Shoe> table, Shoe shoe, TextField quantityTextField) {
-        dao = ShoesDAO.getInstance();
+        service = KicksClientService.getInstance();
 
         // Create TextFields for the ShoeSale fields
         TextField priceTextField = new TextField();
@@ -131,7 +133,7 @@ public class SellShoe {
             // Decrement the quantity of the Shoe
             int quantity = shoe.getQuantity();
             if (quantity == 0) {
-                dao.getShoes().remove(shoe);
+                service.getShoes().remove(shoe);
                 // Show a popup if the quantity is 0
                 Stage popupStage = PopupStage.createPopupStage(modifyStage, "Error");
                 Label label = new Label("You don't own any more pairs of this shoe");
@@ -148,16 +150,18 @@ public class SellShoe {
                 popupStage.show();
             } else {
                 shoe.setQuantity(quantity - 1);
-                dao.updateShoe(shoe);
+                service.updateShoe(shoe);
 
                 quantityTextField.setText(String.valueOf(shoe.getQuantity()));
 
                 // Insert a new ShoeSale record
                 ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate, vendor.getId(), payOut);
                 dao.addShoeSale(sale);
+                ShoeSale sale = new ShoeSale(shoe.getSku(), price, saleDate);
+                service.addShoeSale(sale);
 
                 // Refresh the shoe list
-                table.setItems(FXCollections.observableArrayList(dao.getShoes()));
+                table.setItems(FXCollections.observableArrayList(service.getShoes()));
             }
 
             totalPayoutTextField.clear();
