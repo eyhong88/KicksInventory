@@ -43,8 +43,6 @@ public class KicksClientImpl implements KicksClient {
         this.httpClient = HttpClients.custom()
                 .setDefaultRequestConfig(requestConfig)
                 .build();
-
-//        this.httpClient = HttpClients.createDefault();
     }
 
     public static KicksClientImpl getInstance() {

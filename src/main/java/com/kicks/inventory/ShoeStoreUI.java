@@ -1,5 +1,6 @@
 package com.kicks.inventory;
 
+import com.kicks.inventory.dao.ShoesDAO;
 import com.kicks.inventory.dto.Shoe;
 import com.kicks.inventory.dto.ShoeSale;
 import com.kicks.inventory.pagination.ShoeTablePagination;
@@ -15,6 +16,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
@@ -29,9 +34,13 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.text.DecimalFormat;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class ShoeStoreUI extends Application {
     public static final int BUTTON_WIDTH = 100;
@@ -294,8 +303,14 @@ public class ShoeStoreUI extends Application {
         saleTotalLabel.setStyle(getStyle());
         salesTexTLabel.setStyle("-fx-underline: true;"+getStyle());
 
+        Button chartButton = new Button("Chart");
+        chartButton.setVisible(true);
+        chartButton.setOnAction(event -> {
+            createChart();
+        });
+
         // create a VBox to hold the labels
-        VBox vbox = new VBox(brandLabel, countLabel, priceLabel, estSalePriceDiffLabel, gainsPercentLabel, salesTexTLabel, saleCountLabel, saleTotalLabel);
+        VBox vbox = new VBox(brandLabel, countLabel, priceLabel, estSalePriceDiffLabel, gainsPercentLabel, salesTexTLabel, saleCountLabel, saleTotalLabel, chartButton);
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(10);
 
@@ -303,17 +318,41 @@ public class ShoeStoreUI extends Application {
         vbox.setStyle("-fx-background-color: #212121;");
 
         // create a Scene for the VBox
-        Scene scene = new Scene(vbox, 300, 350);
+        Scene scene = new Scene(vbox, 300, 400);
 
         // set the Scene of the statsStage and show it
         statsStage.setScene(scene);
         statsStage.show();
     }
 
+    private void createChart() {
+        Stage chartStage = PopupStage.createPopupStage(primaryStage, "Chart");
+        ShoesDAO dao = ShoesDAO.getInstance();
+        List<ShoeSale> shoeSales = dao.getShoeSales();
+        TreeMap<String, Double> salesByDate = new TreeMap<>(shoeSales.stream()
+                .collect(Collectors.groupingBy(ShoeSale::getSaleDate, Collectors.summingDouble(ShoeSale::getSalePrice))));
+
+
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+        salesByDate.forEach((k,v) -> {
+            series.getData().add(new XYChart.Data<>(k, v));
+        });
+
+        lineChart.getData().add(series);
+
+        Scene scene = new Scene(lineChart, 800, 600);
+        chartStage.setScene(scene);
+        chartStage.setTitle("Shoes Sold Graph");
+        chartStage.show();
+    }
+
     private static String getStyle() {
         return "-fx-font-size: 24px; -fx-text-fill: white;";
     }
-
 
     private HBox createSearchBar(Pagination pagination) {
         TextField searchField = new TextField();
