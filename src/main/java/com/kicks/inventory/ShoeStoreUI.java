@@ -306,28 +306,7 @@ public class ShoeStoreUI extends Application {
         Button chartButton = new Button("Chart");
         chartButton.setVisible(true);
         chartButton.setOnAction(event -> {
-            Stage chartStage = PopupStage.createPopupStage(primaryStage, "Chart");
-            ShoesDAO dao = ShoesDAO.getInstance();
-            List<ShoeSale> shoeSales = dao.getShoeSales();
-            TreeMap<String, Double> salesByDate = new TreeMap<>(shoeSales.stream()
-                    .collect(Collectors.groupingBy(ShoeSale::getSaleDate, Collectors.summingDouble(ShoeSale::getSalePrice))));
-
-
-            CategoryAxis xAxis = new CategoryAxis();
-            NumberAxis yAxis = new NumberAxis();
-            LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-
-            salesByDate.forEach((k,v) -> {
-                series.getData().add(new XYChart.Data<>(k, v));
-            });
-
-            lineChart.getData().add(series);
-
-            Scene scene = new Scene(lineChart, 800, 600);
-            chartStage.setScene(scene);
-            chartStage.setTitle("Stats Graph");
-            chartStage.show();
+            createChart();
         });
 
         // create a VBox to hold the labels
@@ -346,10 +325,34 @@ public class ShoeStoreUI extends Application {
         statsStage.show();
     }
 
+    private void createChart() {
+        Stage chartStage = PopupStage.createPopupStage(primaryStage, "Chart");
+        ShoesDAO dao = ShoesDAO.getInstance();
+        List<ShoeSale> shoeSales = dao.getShoeSales();
+        TreeMap<String, Double> salesByDate = new TreeMap<>(shoeSales.stream()
+                .collect(Collectors.groupingBy(ShoeSale::getSaleDate, Collectors.summingDouble(ShoeSale::getSalePrice))));
+
+
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+        LineChart<String, Number> lineChart = new LineChart<>(xAxis, yAxis);
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+        salesByDate.forEach((k,v) -> {
+            series.getData().add(new XYChart.Data<>(k, v));
+        });
+
+        lineChart.getData().add(series);
+
+        Scene scene = new Scene(lineChart, 800, 600);
+        chartStage.setScene(scene);
+        chartStage.setTitle("Shoes Sold Graph");
+        chartStage.show();
+    }
+
     private static String getStyle() {
         return "-fx-font-size: 24px; -fx-text-fill: white;";
     }
-
 
     private HBox createSearchBar(Pagination pagination) {
         TextField searchField = new TextField();
