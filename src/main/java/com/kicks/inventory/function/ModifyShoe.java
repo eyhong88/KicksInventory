@@ -98,7 +98,7 @@ public class ModifyShoe {
         buttonBox.getChildren().addAll(submitButton, cancelButton);
         popupGrid.add(buttonBox, 1, 9);
 
-        VBox sellShoeVBox = SellShoe.sellShoe(popupStage, table, shoe, quantityTextField);
+        VBox sellShoeVBox = new SellShoe().sellShoe(popupStage, table, shoe, quantityTextField);
         HBox hBox = new HBox(popupGrid, new Separator(Orientation.VERTICAL), sellShoeVBox);
 
         Scene popupScene = new Scene(hBox);

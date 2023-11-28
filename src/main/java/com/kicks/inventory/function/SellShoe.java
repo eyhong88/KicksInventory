@@ -29,11 +29,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SellShoe {
-    private static ShoesDAO dao;
-    private static Vendor vendor;
-    private static double payOut;
-    private static KicksClientService service;
-    public static VBox sellShoe(Stage modifyStage, TableView<Shoe> table, Shoe shoe, TextField quantityTextField) {
+    private ShoesDAO dao;
+    private Vendor vendor;
+    private double payOut;
+    private KicksClientService service;
+    public VBox sellShoe(Stage modifyStage, TableView<Shoe> table, Shoe shoe, TextField quantityTextField) {
         service = KicksClientService.getInstance();
 
         // Create TextFields for the ShoeSale fields
@@ -76,7 +76,7 @@ public class SellShoe {
         return new VBox(gridPane);
     }
 
-    private static Button sellButton(ComboBox<String> vendorComboBox,
+    private Button sellButton(ComboBox<String> vendorComboBox,
                                      TextField priceTextField,
                                      TextField saleDateTextField,
                                      TextField quantityTextField,
@@ -168,7 +168,7 @@ public class SellShoe {
 
         return sellButton;
     }
-    private static double updateTotalPayout(TextField totalPayoutTextField, String priceText, String taxText) {
+    private double updateTotalPayout(TextField totalPayoutTextField, String priceText, String taxText) {
         double payOut = 0.0;
         if (priceText.isEmpty()) {
             totalPayoutTextField.clear();
@@ -183,7 +183,7 @@ public class SellShoe {
 
         return payOut;
     }
-    private static GridPane setupGridPane(TextField priceTextField, TextField saleDateTextField,
+    private GridPane setupGridPane(TextField priceTextField, TextField saleDateTextField,
                                           TextField totalPayoutTextField, ComboBox<String> vendorComboBox,
                                           Label vendorFeeLabel, TextField skuTextField, TextField taxTextField,
                                           Button sellButton) {
