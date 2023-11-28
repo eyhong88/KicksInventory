@@ -328,7 +328,7 @@ public class ShoeStoreUI extends Application {
     private void createChart() {
         Stage chartStage = PopupStage.createPopupStage(primaryStage, "Chart");
         ShoesDAO dao = ShoesDAO.getInstance();
-        List<ShoeSale> shoeSales = dao.getShoeSales();
+        List<ShoeSale> shoeSales = service.getShoeSales();
         TreeMap<String, Double> salesByDate = new TreeMap<>(shoeSales.stream()
                 .collect(Collectors.groupingBy(ShoeSale::getSaleDate, Collectors.summingDouble(ShoeSale::getSalePrice))));
 
